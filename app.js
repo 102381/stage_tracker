@@ -3,65 +3,63 @@
 const TEXTS = {
   en: {
     done: 'Done', toWord: 'to', change: 'change',
-    pickTitle: 'Which internship are you in?', pickHint: 'You can switch later from the home screen.',
-    periodName: n => n === 1 ? '1st internship' : '2nd internship', opensOn: d => `Opens on ${d}`, title: 'Stage hours', thisWeek: 'This week', addToday: "Add today's hours",
+    pickTitle: 'Which internship are you in?',
+    periodName: n => n === 1 ? '1st internship' : '2nd internship', opensOn: d => `Opens on ${d}`, title: 'Stage hours', addToday: "Add today's hours",
     entries: 'Entries', calendar: 'Calendar', settings: 'Settings',
     addTitle: 'Add hours', date: 'Date', hoursWord: 'hours', noteOpt: 'Note (optional)', notePh: 'What did you work on?', latest: 'Latest',
     save: h => `Save ${h} hours`, update: h => `Update to ${h} hours`,
-    finishOn: 'You finish on', lastDay: d => `Last day is ${d}`,
+    finishOn: 'You finish on',
     early: n => n === 1 ? '1 day early' : `${n} days early`,
     late: n => n === 1 ? '1 day late' : `${n} days late`,
     onLastDay: 'On the last day', complete: 'Minimum reached',
-    needPerDay: (h, d) => `Work ${h} h a day to finish on ${d}.`,
-    ofMin: m => `of ${m} h`, yourHours: 'Your hours', plan: h => `Plan for today: ${h} h`,
+    needPerDay: h => `Needs ${h} h a day.`,
+    ofMin: m => `of ${m} h`, plan: h => `Plan: ${h} h`,
     left: 'Left to do', waiting: 'Waiting for approval',
     approveAll: 'Approve all', pendingNote: h => h ? `${h} h waiting for approval` : 'Everything approved', noEntries: 'No entries yet.',
     locked: 'Over 14 days old: B3net no longer lets you fill this in.', lockedTag: 'locked', inOpening: 'before you started here',
     start: 'My first day', weekHint: 'Hours per weekday',
-    openTitle: 'Hours I already have', openHint: 'Hours from before you started using this site.',
+    openTitle: 'Hours I already have',
     approved: 'Approved', pending: 'Not approved yet',
     daysOff: 'Days off', from: 'From', to: 'Until (optional)', label: 'Reason', add: 'Add', returnDays: 'School return days',
     nothingAdded: 'Nothing added.', remove: 'Delete', darkMode: 'Dark mode', lightMode: 'Light mode',
     weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     legend: { logged: 'Logged', short: 'Below plan', returnDay: 'Return day', dayOff: 'Day off', noWork: 'No work', lastDay: 'Last day' },
     storedHere: 'Saved on this device only',
-    setupTitle: 'Set up your internship', setupHint: 'Your hours stay on this device. You can change everything later in Settings.',
+    setupTitle: 'Set up your internship',
     startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: (a, b) => `Your first day must be between ${a} and ${b}.`,
     resetBtn: 'Erase my data and start over', resetConfirm: 'Erase the hours and settings of this internship on this device?',
     backup: 'Backup', exportBtn: 'Download backup', importBtn: 'Load backup',
-    backupHint: 'Use this to move your hours to another device.',
     importDone: 'Backup loaded.', importFailed: 'That file could not be read.',
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   },
   nl: {
     done: 'Klaar', toWord: 'tot', change: 'wijzig',
-    pickTitle: 'In welke stage zit je?', pickHint: 'Je kunt later wisselen op het beginscherm.',
-    periodName: n => `${n}e stage`, opensOn: d => `Opent op ${d}`, title: 'Stage-uren', thisWeek: 'Deze week', addToday: 'Uren van vandaag invullen',
+    pickTitle: 'In welke stage zit je?',
+    periodName: n => `${n}e stage`, opensOn: d => `Opent op ${d}`, title: 'Stage-uren', addToday: 'Uren van vandaag invullen',
     entries: 'Invoer', calendar: 'Kalender', settings: 'Instellingen',
     addTitle: 'Uren invullen', date: 'Datum', hoursWord: 'uur', noteOpt: 'Notitie (optioneel)', notePh: 'Waar werkte je aan?', latest: 'Laatste',
     save: h => `${h} uur opslaan`, update: h => `Wijzigen naar ${h} uur`,
-    finishOn: 'Je bent klaar op', lastDay: d => `Laatste dag is ${d}`,
+    finishOn: 'Je bent klaar op',
     early: n => n === 1 ? '1 dag eerder' : `${n} dagen eerder`,
     late: n => n === 1 ? '1 dag later' : `${n} dagen later`,
     onLastDay: 'Op de laatste dag', complete: 'Minimum bereikt',
-    needPerDay: (h, d) => `Werk ${h} uur per dag om op ${d} klaar te zijn.`,
-    ofMin: m => `van ${m} uur`, yourHours: 'Jouw uren', plan: h => `Plan voor vandaag: ${h} uur`,
+    needPerDay: h => `Heb ${h} uur per dag nodig.`,
+    ofMin: m => `van ${m} uur`, plan: h => `Plan: ${h} uur`,
     left: 'Nog te doen', waiting: 'Wacht op goedkeuring',
     approveAll: 'Alles goedkeuren', pendingNote: h => h ? `${h} uur wacht op goedkeuring` : 'Alles goedgekeurd', noEntries: 'Nog geen invoer.',
     locked: 'Ouder dan 14 dagen: in B3net kun je dit niet meer invullen.', lockedTag: 'vergrendeld', inOpening: 'van voor je begon',
     start: 'Mijn eerste dag', weekHint: 'Uren per weekdag',
-    openTitle: 'Uren die ik al heb', openHint: 'Uren van voordat je deze site ging gebruiken.',
+    openTitle: 'Uren die ik al heb',
     approved: 'Goedgekeurd', pending: 'Nog niet goedgekeurd',
     daysOff: 'Vrije dagen', from: 'Van', to: 'Tot (optioneel)', label: 'Reden', add: 'Toevoegen', returnDays: 'Terugkomdagen',
     nothingAdded: 'Niets toegevoegd.', remove: 'Verwijderen', darkMode: 'Donkere modus', lightMode: 'Lichte modus',
     weekdays: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
     legend: { logged: 'Ingevuld', short: 'Onder plan', returnDay: 'Terugkomdag', dayOff: 'Vrije dag', noWork: 'Geen werk', lastDay: 'Laatste dag' },
     storedHere: 'Alleen op dit apparaat opgeslagen',
-    setupTitle: 'Stel je stage in', setupHint: 'Je uren blijven op dit apparaat. Je kunt alles later aanpassen bij Instellingen.',
+    setupTitle: 'Stel je stage in',
     startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: (a, b) => `Je eerste dag moet tussen ${a} en ${b} liggen.`,
     resetBtn: 'Mijn gegevens wissen en opnieuw beginnen', resetConfirm: 'De uren en instellingen van deze stage op dit apparaat wissen?',
     backup: 'Back-up', exportBtn: 'Back-up downloaden', importBtn: 'Back-up laden',
-    backupHint: 'Gebruik dit om je uren naar een ander apparaat te verplaatsen.',
     importDone: 'Back-up geladen.', importFailed: 'Dat bestand kan niet worden gelezen.',
     months: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
   }
@@ -314,7 +312,7 @@ function drawFinishCard(model) {
   const finishesLate = model.finishDay !== null && model.finishDay > model.endDay;
   if (finishesLate && model.neededPerDay !== null) {
     const hours = showNumber(Math.ceil(model.neededPerDay * 10) / 10);
-    needNote = `<div class="need-note">${esc(t.needPerDay(hours, shortDate(model.endDay)))}</div>`;
+    needNote = `<div class="need-note">${esc(t.needPerDay(hours))}</div>`;
   }
 
   $('#finish-card').innerHTML =
@@ -322,7 +320,6 @@ function drawFinishCard(model) {
      <span class="finish-date">${esc(bigText)}</span>
      <div class="finish-meta">
        ${tagText ? `<span class="tag ${tagClass}">${esc(tagText)}</span>` : ''}
-       <span class="small muted">${esc(t.lastDay(shortDate(model.endDay)))}</span>
      </div>${needNote}`;
 }
 
@@ -337,10 +334,10 @@ function drawProgress(model) {
        <i class="approved" style="width:${percent(model.approved)}%"></i>
        <span class="plan-mark" style="left:calc(${percent(model.shouldHave)}% - 1px)"></span>
      </div>
-     <div class="bar-caption"><span>${esc(t.yourHours)}</span><span>${esc(t.plan(showNumber(model.shouldHave)))}</span></div>
+     <div class="bar-caption"><span>${esc(t.plan(showNumber(model.shouldHave)))}</span></div>
      <ul class="facts">
        <li><span>${esc(t.left)}</span><b>${showNumber(model.left)} h</b></li>
-       <li><span>${esc(t.waiting)}</span><b>${showNumber(model.pending)} h</b></li>
+       ${model.pending > 0 ? `<li><span>${esc(t.waiting)}</span><b>${showNumber(model.pending)} h</b></li>` : ''}
      </ul>`;
 }
 
@@ -367,7 +364,9 @@ function drawWeek(model) {
 }
 
 function drawHome() {
-  $('#period-btn').textContent = `${text().periodName(period)} (${text().change})`;
+  const chip = $('#period-btn');
+  chip.hidden = !(isUnlocked(2) || period === 2);
+  chip.textContent = `${text().periodName(period)} (${text().change})`;
   const model = getModel();
   drawFinishCard(model);
   drawProgress(model);

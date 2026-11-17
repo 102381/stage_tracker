@@ -29,10 +29,7 @@
     <button class="period-chip" type="button" id="period-btn"></button>
     <div class="hero" id="finish-card"></div>
     <div id="progress"></div>
-    <div>
-      <div class="small muted" style="margin-bottom:8px" data-text="thisWeek"></div>
-      <div class="week" id="week"></div>
-    </div>
+    <div class="week" id="week" role="group" aria-label="This week"></div>
     <div class="spacer"></div>
     <button class="big-btn" type="button" id="add-today-btn"><span data-icon="plus"></span><span data-text="addToday"></span></button>
     <div class="nav-links">
@@ -40,7 +37,6 @@
       <button class="nav-link" type="button" data-go="calendar" data-text="calendar"></button>
       <button class="nav-link" type="button" data-go="settings" data-text="settings"></button>
     </div>
-    <div class="sync-note" data-text="storedHere"></div>
   </section>
 
   <section class="view" id="view-log" hidden>
@@ -88,7 +84,6 @@
     <h3 data-text="weekHint"></h3>
     <div class="week-hours" id="week-hours"></div>
     <h3 data-text="openTitle"></h3>
-    <div class="small muted" data-text="openHint"></div>
     <div class="field-grid">
       <label for="set-approved"><span data-text="approved"></span><input id="set-approved" type="number" step="0.25" min="0" max="5000"></label>
       <label for="set-pending"><span data-text="pending"></span><input id="set-pending" type="number" step="0.25" min="0" max="5000"></label>
@@ -108,12 +103,12 @@
     </form>
     <ul class="list" id="return-list"></ul>
     <h3 data-text="backup"></h3>
-    <div class="small muted" data-text="backupHint"></div>
     <div class="inline-form">
       <button class="small-btn" type="button" id="export-btn" data-text="exportBtn"></button>
       <button class="small-btn" type="button" id="import-btn" data-text="importBtn"></button>
     </div>
     <button class="small-btn" type="button" id="reset-btn" data-text="resetBtn"></button>
+    <div class="sync-note" data-text="storedHere"></div>
   </section>
 
   <section class="view" id="view-period" hidden>
@@ -126,7 +121,6 @@
     </div>
     <h2 data-text="pickTitle"></h2>
     <div class="period-list" id="period-list"></div>
-    <div class="small muted" data-text="pickHint"></div>
   </section>
 
   <section class="view" id="view-setup" hidden>
@@ -139,7 +133,6 @@
     </div>
     <h2 data-text="setupTitle"></h2>
     <div class="small muted" id="setup-period"></div>
-    <div class="small muted" data-text="setupHint"></div>
     <form class="stack" id="setup-form" novalidate>
       <div class="field-grid">
         <label for="setup-start"><span data-text="start"></span><input id="setup-start" type="date" required></label>
@@ -147,7 +140,6 @@
       <h3 data-text="weekHint"></h3>
       <div class="week-hours" id="setup-week"></div>
       <h3 data-text="openTitle"></h3>
-      <div class="small muted" data-text="openHint"></div>
       <div class="field-grid">
         <label for="setup-approved"><span data-text="approved"></span><input id="setup-approved" type="number" step="0.25" min="0" max="5000"></label>
         <label for="setup-pending"><span data-text="pending"></span><input id="setup-pending" type="number" step="0.25" min="0" max="5000"></label>
