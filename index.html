@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+Sz3TFKz4JW7jh8hPVBCxzuT2+RgbMh89zarEDBWBPM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-dIuARKkpWI5wQE2dCeqA2u+dnxTXKm6VDBt10a1aloA='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Stage Hours Tracker</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
@@ -208,8 +208,6 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
     <div class="top"><div class="top-left"><button class="icon-btn back" type="button" data-go="home" data-icon="back" aria-label="Back"></button><h2 data-text="settings"></h2></div></div>
     <div class="field-grid">
       <label for="set-start"><span data-text="start"></span><input id="set-start" type="date"></label>
-      <label for="set-end"><span data-text="end"></span><input id="set-end" type="date"></label>
-      <label for="set-min"><span data-text="minHours"></span><input id="set-min" type="number" step="0.25" min="0" max="5000"></label>
     </div>
     <h3 data-text="weekHint"></h3>
     <div class="week-hours" id="week-hours"></div>
@@ -218,7 +216,6 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
     <div class="field-grid">
       <label for="set-approved"><span data-text="approved"></span><input id="set-approved" type="number" step="0.25" min="0" max="5000"></label>
       <label for="set-pending"><span data-text="pending"></span><input id="set-pending" type="number" step="0.25" min="0" max="5000"></label>
-      <label for="set-asof"><span data-text="asof"></span><input id="set-asof" type="date"></label>
     </div>
     <h3 data-text="daysOff"></h3>
     <form class="inline-form" id="off-form">
@@ -256,8 +253,6 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
     <form class="stack" id="setup-form" novalidate>
       <div class="field-grid">
         <label for="setup-start"><span data-text="start"></span><input id="setup-start" type="date" required></label>
-        <label for="setup-end"><span data-text="end"></span><input id="setup-end" type="date" required></label>
-        <label for="setup-min"><span data-text="minHours"></span><input id="setup-min" type="number" step="0.25" min="0" max="5000"></label>
       </div>
       <h3 data-text="weekHint"></h3>
       <div class="week-hours" id="setup-week"></div>
@@ -266,7 +261,6 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
       <div class="field-grid">
         <label for="setup-approved"><span data-text="approved"></span><input id="setup-approved" type="number" step="0.25" min="0" max="5000"></label>
         <label for="setup-pending"><span data-text="pending"></span><input id="setup-pending" type="number" step="0.25" min="0" max="5000"></label>
-        <label for="setup-asof"><span data-text="asof"></span><input id="setup-asof" type="date"></label>
       </div>
       <div class="lock-note" id="setup-error" hidden data-text="setupError"></div>
       <button class="big-btn" type="submit" data-text="startBtn"></button>
@@ -296,17 +290,17 @@ const TEXTS = {
     ofMin: m => `of ${m} h`, yourHours: 'Your hours', plan: h => `Plan for today: ${h} h`,
     left: 'Left to do', waiting: 'Waiting for approval',
     approveAll: 'Approve all', pendingNote: h => h ? `${h} h waiting for approval` : 'Everything approved', noEntries: 'No entries yet.',
-    locked: 'Over 14 days old: B3net no longer lets you fill this in.', lockedTag: 'locked', inOpening: 'in opening balance',
-    start: 'First day', end: 'Last day', minHours: 'Minimum hours', weekHint: 'Hours per weekday',
-    openTitle: 'Opening balance', openHint: 'Hours already in B3net, counted up to the date below.',
-    approved: 'Approved', pending: 'Not approved yet', asof: 'Counted up to',
+    locked: 'Over 14 days old: B3net no longer lets you fill this in.', lockedTag: 'locked', inOpening: 'before you started here',
+    start: 'My first day', weekHint: 'Hours per weekday',
+    openTitle: 'Hours I already have', openHint: 'Hours from before you started using this site.',
+    approved: 'Approved', pending: 'Not approved yet',
     daysOff: 'Days off', from: 'From', to: 'Until (optional)', label: 'Reason', add: 'Add', returnDays: 'School return days',
     nothingAdded: 'Nothing added.', remove: 'Delete', darkMode: 'Dark mode', lightMode: 'Light mode',
     weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     legend: { logged: 'Logged', short: 'Below plan', returnDay: 'Return day', dayOff: 'Day off', noWork: 'No work', lastDay: 'Last day' },
     storedHere: 'Saved on this device only',
     setupTitle: 'Set up your internship', setupHint: 'Your hours stay on this device. You can change everything later in Settings.',
-    startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: 'Check your dates: the last day must come after the first day.',
+    startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: 'Your first day must be between 2 Sep 2026 and 5 Feb 2027.',
     resetBtn: 'Erase my data and start over', resetConfirm: 'Erase all your hours and settings on this device?',
     backup: 'Backup', exportBtn: 'Download backup', importBtn: 'Load backup',
     backupHint: 'Use this to move your hours to another device.',
@@ -326,17 +320,17 @@ const TEXTS = {
     ofMin: m => `van ${m} uur`, yourHours: 'Jouw uren', plan: h => `Plan voor vandaag: ${h} uur`,
     left: 'Nog te doen', waiting: 'Wacht op goedkeuring',
     approveAll: 'Alles goedkeuren', pendingNote: h => h ? `${h} uur wacht op goedkeuring` : 'Alles goedgekeurd', noEntries: 'Nog geen invoer.',
-    locked: 'Ouder dan 14 dagen: in B3net kun je dit niet meer invullen.', lockedTag: 'vergrendeld', inOpening: 'in beginsaldo',
-    start: 'Eerste dag', end: 'Laatste dag', minHours: 'Minimum uren', weekHint: 'Uren per weekdag',
-    openTitle: 'Beginsaldo', openHint: 'Uren die al in B3net staan, geteld t/m de datum hieronder.',
-    approved: 'Goedgekeurd', pending: 'Nog niet goedgekeurd', asof: 'Geteld t/m',
+    locked: 'Ouder dan 14 dagen: in B3net kun je dit niet meer invullen.', lockedTag: 'vergrendeld', inOpening: 'van voor je begon',
+    start: 'Mijn eerste dag', weekHint: 'Uren per weekdag',
+    openTitle: 'Uren die ik al heb', openHint: 'Uren van voordat je deze site ging gebruiken.',
+    approved: 'Goedgekeurd', pending: 'Nog niet goedgekeurd',
     daysOff: 'Vrije dagen', from: 'Van', to: 'Tot (optioneel)', label: 'Reden', add: 'Toevoegen', returnDays: 'Terugkomdagen',
     nothingAdded: 'Niets toegevoegd.', remove: 'Verwijderen', darkMode: 'Donkere modus', lightMode: 'Lichte modus',
     weekdays: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
     legend: { logged: 'Ingevuld', short: 'Onder plan', returnDay: 'Terugkomdag', dayOff: 'Vrije dag', noWork: 'Geen werk', lastDay: 'Laatste dag' },
     storedHere: 'Alleen op dit apparaat opgeslagen',
     setupTitle: 'Stel je stage in', setupHint: 'Je uren blijven op dit apparaat. Je kunt alles later aanpassen bij Instellingen.',
-    startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: 'Controleer je datums: de laatste dag moet na de eerste dag liggen.',
+    startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: 'Je eerste dag moet tussen 2 sep 2026 en 5 feb 2027 liggen.',
     resetBtn: 'Mijn gegevens wissen en opnieuw beginnen', resetConfirm: 'Alle uren en instellingen op dit apparaat wissen?',
     backup: 'Back-up', exportBtn: 'Back-up downloaden', importBtn: 'Back-up laden',
     backupHint: 'Gebruik dit om je uren naar een ander apparaat te verplaatsen.',
@@ -392,14 +386,21 @@ function isDate(value) {
 }
 
 
+/* ========== Fixed by the school (these cannot be changed on the site) ========== */
+
+const REQUIRED_HOURS = 620;                 // first internship
+const OFFICIAL_FIRST_DAY = '2026-09-02';
+const OFFICIAL_LAST_DAY = '2027-02-05';
+
+
 /* ========== Defaults (used until someone sets up their own internship) ========== */
 
 function buildDefaultConfig() {
   const first = todayNumber();
   return {
-    start: dayString(first),
-    end: dayString(first + 180),
-    min: 400,
+    start: OFFICIAL_FIRST_DAY,
+    end: OFFICIAL_LAST_DAY,
+    min: REQUIRED_HOURS,
     week: [0, 8, 8, 8, 8, 8, 0],            // Sunday first, like Date.getDay()
     open: { approved: 0, pending: 0, asOf: dayString(first - 1) },
     off: [],
@@ -454,12 +455,13 @@ function cleanReturnDays(raw) {
 }
 function cleanConfig(raw) {
   const source = raw && typeof raw === 'object' ? raw : {};
-  let start = dateOr(source.start, DEFAULT_CONFIG.start);
-  let end = dateOr(source.end, DEFAULT_CONFIG.end);
-  if (end < start) { start = DEFAULT_CONFIG.start; end = DEFAULT_CONFIG.end; }
+  // Only the person's own first day can vary, and only inside the official period.
+  let start = dateOr(source.start, OFFICIAL_FIRST_DAY);
+  if (start < OFFICIAL_FIRST_DAY || start > OFFICIAL_LAST_DAY) start = OFFICIAL_FIRST_DAY;
   return {
-    start, end,
-    min: toHours(source.min, LIMITS.totalHours) || DEFAULT_CONFIG.min,
+    start,
+    end: OFFICIAL_LAST_DAY,
+    min: REQUIRED_HOURS,
     week: cleanWeek(source.week),
     open: cleanOpening(source.open),
     off: source.off === undefined ? structuredClone(DEFAULT_CONFIG.off) : cleanDaysOff(source.off),
@@ -530,7 +532,7 @@ function buildRules(config) {
   return { daysOff, returnDays, hoursOn };
 }
 
-// Opening balance plus every logged day after the "counted up to" date.
+// Hours the person already had, plus every day logged after they started using the site.
 function totalHours(config, logs) {
   const openUntil = dayNumber(config.open.asOf);
   let approved = config.open.approved;
@@ -798,22 +800,18 @@ function fillSettingsFields() {
   if (document.activeElement && $('#view-settings').contains(document.activeElement)) return;
   const config = state.cfg;
   $('#set-start').value = config.start;
-  $('#set-end').value = config.end;
-  $('#set-min').value = config.min;
   $('#set-approved').value = config.open.approved;
   $('#set-pending').value = config.open.pending;
-  $('#set-asof').value = config.open.asOf;
   $('#week-hours').innerHTML = weekHoursInputs('hours', config.week);
 }
 
 function fillSetupFields() {
   const config = state.cfg;
   $('#setup-start').value = config.start;
-  $('#setup-end').value = config.end;
-  $('#setup-min').value = config.min;
+  $('#setup-start').min = OFFICIAL_FIRST_DAY;
+  $('#setup-start').max = OFFICIAL_LAST_DAY;
   $('#setup-approved').value = config.open.approved;
   $('#setup-pending').value = config.open.pending;
-  $('#setup-asof').value = config.open.asOf;
   $('#setup-week').innerHTML = weekHoursInputs('setup-hours', config.week);
   $('#setup-error').hidden = true;
 }
@@ -988,17 +986,15 @@ $('#reset-btn').addEventListener('click', () => {
 $('#setup-form').addEventListener('submit', event => {
   event.preventDefault();
   const start = $('#setup-start').value;
-  const end = $('#setup-end').value;
-  if (!isDate(start) || !isDate(end) || end < start) { $('#setup-error').hidden = false; return; }
+  if (!isDate(start) || start < OFFICIAL_FIRST_DAY || start > OFFICIAL_LAST_DAY) { $('#setup-error').hidden = false; return; }
   const week = [0, 0, 0, 0, 0, 0, 0];
   for (const input of document.querySelectorAll('#setup-week input')) {
     week[Number(input.dataset.weekday)] = toHours(input.value, LIMITS.hoursPerDay);
   }
   state = cleanState({
     cfg: {
-      start, end, week,
-      min: $('#setup-min').value,
-      open: { approved: $('#setup-approved').value, pending: $('#setup-pending').value, asOf: $('#setup-asof').value },
+      start, week,
+      open: { approved: $('#setup-approved').value, pending: $('#setup-pending').value, asOf: dayString(today - 1) },
       off: [], ret: []
     },
     logs: {}
@@ -1011,11 +1007,8 @@ $('#setup-form').addEventListener('submit', event => {
 // One handler for every field on the settings screen.
 const settingFields = {
   'set-start':    (config, value) => { if (isDate(value)) config.start = value; },
-  'set-end':      (config, value) => { if (isDate(value)) config.end = value; },
-  'set-min':      (config, value) => { config.min = toHours(value, LIMITS.totalHours); },
   'set-approved': (config, value) => { config.open.approved = toHours(value, LIMITS.totalHours); },
-  'set-pending':  (config, value) => { config.open.pending = toHours(value, LIMITS.totalHours); },
-  'set-asof':     (config, value) => { if (isDate(value)) config.open.asOf = value; }
+  'set-pending':  (config, value) => { config.open.pending = toHours(value, LIMITS.totalHours); }
 };
 $('#view-settings').addEventListener('change', event => {
   const field = event.target;
