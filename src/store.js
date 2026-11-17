@@ -122,10 +122,11 @@ export function importBackup(file) {
   reader.onload = () => {
     try {
       const imported = loadPeriods(JSON.parse(reader.result))       // checked like any other input
-      for (const id of [1, 2]) {
-        if (imported[id].ready) app.periodData[id] = imported[id]
-      }
-      if (!state.value.ready) app.period = app.periodData[1].ready ? 1 : 2
+      const usable = [1, 2].filter(id => imported[id].ready && isUnlockedNow(id))
+      if (usable.length === 0) { alert(t.value.importFailed); return }
+      if (usable.some(id => app.periodData[id].ready) && !window.confirm(t.value.importConfirm)) return
+      for (const id of usable) app.periodData[id] = imported[id]
+      if (!usable.includes(app.period)) app.period = usable[0]
       writeSetting(STORAGE_KEYS.period, String(app.period))
       commit()
       goTo('home')

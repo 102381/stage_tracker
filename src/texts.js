@@ -27,7 +27,7 @@ export const TEXTS = {
     startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: (a, b) => `Your first day must be between ${a} and ${b}.`,
     resetBtn: 'Erase my data and start over', resetConfirm: 'Erase the hours and settings of this internship on this device?',
     backup: 'Backup', exportBtn: 'Download backup', importBtn: 'Load backup',
-    importDone: 'Backup loaded.', importFailed: 'That file could not be read.',
+    importConfirm: 'Replace the hours on this device with the ones in this file?', importDone: 'Backup loaded.', importFailed: 'That file could not be read.',
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   },
   nl: {
@@ -58,7 +58,7 @@ export const TEXTS = {
     startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: (a, b) => `Je eerste dag moet tussen ${a} en ${b} liggen.`,
     resetBtn: 'Mijn gegevens wissen en opnieuw beginnen', resetConfirm: 'De uren en instellingen van deze stage op dit apparaat wissen?',
     backup: 'Back-up', exportBtn: 'Back-up downloaden', importBtn: 'Back-up laden',
-    importDone: 'Back-up geladen.', importFailed: 'Dat bestand kan niet worden gelezen.',
+    importConfirm: 'De uren op dit apparaat vervangen door die in dit bestand?', importDone: 'Back-up geladen.', importFailed: 'Dat bestand kan niet worden gelezen.',
     months: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
   }
 };

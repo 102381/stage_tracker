@@ -1,4 +1,4 @@
-const CACHE = 'stage-hours-2'
+const CACHE = 'stage-hours-3'
 
 // The built script and stylesheet have a different name after every build, so read their names from index.html.
 async function saveAppFiles() {
@@ -21,19 +21,25 @@ self.addEventListener('activate', event => {
   )
 })
 
+// Only real app files without a query string are kept, so the cache cannot grow from made up addresses.
+function worthKeeping(url) {
+  return url.search === '' && /(\/|\.js|\.css|\.html|\.png|\.webmanifest)$/.test(url.pathname)
+}
+
 // Online: always take the fresh file and keep a copy. Offline: use the copy.
 self.addEventListener('fetch', event => {
   const request = event.request
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return
+  const url = new URL(request.url)
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return
   event.respondWith(
     fetch(request)
       .then(response => {
-        if (response.ok) {
+        if (response.ok && worthKeeping(url)) {
           const copy = response.clone()
           caches.open(CACHE).then(cache => cache.put(request, copy))
         }
         return response
       })
-      .catch(() => caches.match(request, { ignoreSearch: true }))
+      .catch(() => caches.match(request, { ignoreSearch: request.mode === 'navigate' }))
   )
 })
