@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-uMiczvodMJ5NDRfhYT3mbwr4Uwd8Uj/qTNSn7IVseQc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Stage Hours Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --ink:#12201c; --muted:#4a5c57; --line:#cbd6d2; --line-soft:#d6e0dc;
+  --accent:#0e6e5b; --accent-bar:#0e7c66; --good-bg:#d6f0e6; --good-ink:#0b5a3a; --track:#dce5e1; --pending-bar:#8fcfc4;
+  --warn:#a85800; --warn-bg:#fbe9d2; --bad:#b3261e; --bad-bg:#fbe0de; --on-accent:#ffffff;
+  --font-display:'Space Grotesk',system-ui,sans-serif; --font-text:'Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1815; --surface:#162521; --ink:#e8f0ed; --muted:#9db0aa; --line:#2b3d38; --line-soft:#24352f;
+  --accent:#2fb59a; --accent-bar:#2fb59a; --good-bg:#173d34; --good-ink:#7be0c3; --track:#1f302b; --pending-bar:#2a6a5e;
+  --warn:#f0a45a; --warn-bg:#3b2a14; --bad:#ff8b82; --bad-bg:#3d1c1a; --on-accent:#06201a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1815; --surface:#162521; --ink:#e8f0ed; --muted:#9db0aa; --line:#2b3d38; --line-soft:#24352f;
+  --accent:#2fb59a; --accent-bar:#2fb59a; --good-bg:#173d34; --good-ink:#7be0c3; --track:#1f302b; --pending-bar:#2a6a5e;
+  --warn:#f0a45a; --warn-bg:#3b2a14; --bad:#ff8b82; --bad-bg:#3d1c1a; --on-accent:#06201a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-text);padding-block:16px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.app{max-width:440px;margin:0 auto}
+.view{display:flex;flex-direction:column;gap:20px;min-height:calc(100dvh - 56px)}
+.view[hidden]{display:none}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top-left{display:flex;align-items:center;gap:8px}
+.tools{display:flex;gap:8px;align-items:center}
+.brand{font:700 18px/1.2 var(--font-display)}
+h2{font:700 20px/1.2 var(--font-display);margin:0}
+h3{font:700 13px/1.2 var(--font-display);margin:8px 0 0;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.spacer{flex-grow:1}
+.visually-hidden{position:absolute;left:-9999px}
+
+.lang{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lang button{border:0;background:transparent;color:var(--muted);font-weight:600;font-size:13px;min-height:44px;min-width:48px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.icon-btn{background:transparent;border:1px solid var(--line);border-radius:8px;min-width:44px;min-height:44px;cursor:pointer;color:var(--muted);flex:none;display:flex;align-items:center;justify-content:center}
+.icon-btn.on{background:var(--accent-bar);border-color:var(--accent-bar);color:var(--on-accent)}
+.back{border:0;margin-left:-12px;color:var(--ink)}
+
+.card{background:var(--surface);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.finish-date{font:700 56px/1 var(--font-display);letter-spacing:-.02em}
+.finish-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.tag{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:600;font-size:14px}
+.tag.good{background:var(--good-bg);color:var(--good-ink)}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.tag.small{font-size:11px;padding:1px 8px}
+.need-note{font-size:13px;color:var(--bad)}
+
+.progress-total{display:flex;justify-content:space-between;align-items:baseline}
+.progress-total b{font:700 28px/1.2 var(--font-display);font-variant-numeric:tabular-nums}
+.bar{position:relative;height:16px;border-radius:8px;background:var(--track);margin:10px 0 6px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:8px}
+.bar .pending{background:var(--pending-bar)}
+.bar .approved{background:var(--accent-bar)}
+.bar .plan-mark{position:absolute;top:-5px;width:3px;height:26px;border-radius:2px;background:var(--ink)}
+.bar-caption{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--surface);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile span{font-size:13px;color:var(--muted)}
+.tile b{font:700 24px/1.2 var(--font-display);font-variant-numeric:tabular-nums}
+
+.week{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.week button{display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:transparent;padding:0;cursor:pointer;min-width:0}
+.week small{font-size:12px;color:var(--muted)}
+.square{width:100%;aspect-ratio:1/1;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;border:1px dashed var(--line);color:var(--muted)}
+.square.worked{background:var(--accent-bar);border:1px solid var(--accent-bar);color:var(--on-accent)}
+.square.today{background:var(--surface);border:2px solid var(--ink)}
+.square.free{background:var(--track);border:1px solid var(--track)}
+
+.big-btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;border-radius:14px;border:0;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:17px;cursor:pointer;width:100%}
+.nav-links{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.nav-link{min-height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;font-weight:600;font-size:14px;cursor:pointer}
+.small-btn{background:transparent;color:var(--accent);border:1px solid var(--line);min-height:44px;font-size:14px;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer}
+.sync-note{font-size:12px;color:var(--muted);text-align:center}
+
+input{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-height:48px;padding:0 14px;width:100%;min-width:0}
+label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
+.date-row{display:flex;justify-content:center}
+.date-row input{width:auto;border-radius:99px;text-align:center;font-weight:600;padding:0 20px}
+.lock-note{font-size:13px;color:var(--warn);text-align:center}
+.stepper{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.round-btn{width:64px;height:64px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.hours-value{display:flex;align-items:baseline;gap:6px;min-width:0}
+.hours-value b{font:700 88px/1 var(--font-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.hours-value span{font-size:22px;color:var(--muted)}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chips button{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:15px;cursor:pointer}
+.chips button[aria-pressed="true"]{border:2px solid var(--accent);background:var(--good-bg);color:var(--good-ink)}
+
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;gap:10px;min-height:52px;border-top:1px solid var(--line-soft);min-width:0;padding-block:4px}
+.list .date{font-weight:500;white-space:nowrap}
+.list .hours{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.list .note{flex:1;min-width:0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.list .empty{color:var(--muted);font-size:14px;padding-block:12px}
+
+.month-head{display:flex;justify-content:space-between;align-items:center}
+.month-name{font-family:var(--font-display)}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calendar .weekday{font-size:11px;color:var(--muted);text-align:center}
+.calendar button{aspect-ratio:1/1;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;display:grid;place-items:center;align-content:center;padding:0;font-size:12px;line-height:1.1;min-width:0}
+.calendar button small{font-size:10px;color:var(--muted)}
+.calendar .blank{visibility:hidden;border:0}
+.calendar .no-work{background:var(--bg);color:var(--muted)}
+.calendar .day-off{background:var(--track);color:var(--muted)}
+.calendar .return-day{background:var(--warn-bg);border-color:var(--warn)}
+.calendar .logged{background:var(--good-bg);border-color:var(--accent-bar)}
+.calendar .short{background:var(--bad-bg);border-color:var(--bad)}
+.calendar .today{outline:2px solid var(--ink);outline-offset:1px}
+.calendar .last-day{box-shadow:inset 0 -3px 0 var(--accent-bar)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.week-hours{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.week-hours input{padding:0 2px;text-align:center}
+.inline-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.inline-form>label{flex:1 1 120px}
+
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .4s ease}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section class="view" id="view-home">
+    <div class="top">
+      <span class="brand" data-text="title"></span>
+      <div class="tools">
+        <button class="icon-btn" type="button" id="theme-btn"></button>
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="nl">NL</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="finish-card"></div>
+    <div id="progress"></div>
+    <div class="tiles" id="tiles"></div>
+    <div>
+      <div class="small muted" style="margin-bottom:8px" data-text="thisWeek"></div>
+      <div class="week" id="week"></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="big-btn" type="button" id="add-today-btn"><span data-icon="plus"></span><span data-text="addToday"></span></button>
+    <div class="nav-links">
+      <button class="nav-link" type="button" data-go="entries" data-text="entries"></button>
+      <button class="nav-link" type="button" data-go="calendar" data-text="calendar"></button>
+      <button class="nav-link" type="button" data-go="settings" data-text="settings"></button>
+    </div>
+    <div class="sync-note" data-text="storedHere"></div>
+  </section>
+
+  <section class="view" id="view-log" hidden>
+    <div class="top"><div class="top-left"><button class="icon-btn back" type="button" data-go="home" data-icon="back" aria-label="Back"></button><h2 data-text="addTitle"></h2></div></div>
+    <label class="visually-hidden" for="log-date" data-text="date"></label>
+    <div class="date-row"><input id="log-date" type="date" required></div>
+    <div class="lock-note" id="lock-note" hidden></div>
+    <div class="stepper">
+      <button class="round-btn" type="button" id="less-btn" data-icon="minus" aria-label="Less"></button>
+      <div class="hours-value"><b id="hours-value"></b><span data-text="hoursWord"></span></div>
+      <button class="round-btn" type="button" id="more-btn" data-icon="plus" aria-label="More"></button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <label for="log-note"><span data-text="noteOpt"></span><input id="log-note" type="text" maxlength="200" data-placeholder="notePh"></label>
+    <div id="latest"></div>
+    <div class="spacer"></div>
+    <button class="big-btn" type="button" id="save-btn"></button>
+  </section>
+
+  <section class="view" id="view-entries" hidden>
+    <div class="top">
+      <div class="top-left"><button class="icon-btn back" type="button" data-go="home" data-icon="back" aria-label="Back"></button><h2 data-text="entries"></h2></div>
+      <button class="small-btn" type="button" id="approve-all-btn" data-text="approveAll"></button>
+    </div>
+    <div class="small muted" id="pending-note"></div>
+    <ul class="list" id="entries-list"></ul>
+  </section>
+
+  <section class="view" id="view-calendar" hidden>
+    <div class="top"><div class="top-left"><button class="icon-btn back" type="button" data-go="home" data-icon="back" aria-label="Back"></button><h2 data-text="calendar"></h2></div></div>
+    <div class="month-head">
+      <button class="icon-btn" type="button" id="prev-month" aria-label="Previous month">‹</button>
+      <strong class="month-name" id="month-name"></strong>
+      <button class="icon-btn" type="button" id="next-month" aria-label="Next month">›</button>
+    </div>
+    <div class="calendar" id="calendar"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="view" id="view-settings" hidden>
+    <div class="top"><div class="top-left"><button class="icon-btn back" type="button" data-go="home" data-icon="back" aria-label="Back"></button><h2 data-text="settings"></h2></div></div>
+    <div class="field-grid">
+      <label for="set-start"><span data-text="start"></span><input id="set-start" type="date"></label>
+      <label for="set-end"><span data-text="end"></span><input id="set-end" type="date"></label>
+      <label for="set-min"><span data-text="minHours"></span><input id="set-min" type="number" step="0.25" min="0" max="5000"></label>
+    </div>
+    <h3 data-text="weekHint"></h3>
+    <div class="week-hours" id="week-hours"></div>
+    <h3 data-text="openTitle"></h3>
+    <div class="small muted" data-text="openHint"></div>
+    <div class="field-grid">
+      <label for="set-approved"><span data-text="approved"></span><input id="set-approved" type="number" step="0.25" min="0" max="5000"></label>
+      <label for="set-pending"><span data-text="pending"></span><input id="set-pending" type="number" step="0.25" min="0" max="5000"></label>
+      <label for="set-asof"><span data-text="asof"></span><input id="set-asof" type="date"></label>
+    </div>
+    <h3 data-text="daysOff"></h3>
+    <form class="inline-form" id="off-form">
+      <label for="off-from"><span data-text="from"></span><input id="off-from" type="date" required></label>
+      <label for="off-to"><span data-text="to"></span><input id="off-to" type="date"></label>
+      <label for="off-label"><span data-text="label"></span><input id="off-label" type="text" maxlength="60"></label>
+      <button class="small-btn" type="submit" data-text="add"></button>
+    </form>
+    <ul class="list" id="off-list"></ul>
+    <h3 data-text="returnDays"></h3>
+    <form class="inline-form" id="return-form">
+      <label for="return-date"><span data-text="date"></span><input id="return-date" type="date" required></label>
+      <button class="small-btn" type="submit" data-text="add"></button>
+    </form>
+    <ul class="list" id="return-list"></ul>
+    <h3 data-text="backup"></h3>
+    <div class="small muted" data-text="backupHint"></div>
+    <div class="inline-form">
+      <button class="small-btn" type="button" id="export-btn" data-text="exportBtn"></button>
+      <button class="small-btn" type="button" id="import-btn" data-text="importBtn"></button>
+      <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json" aria-label="Backup file">
+    </div>
+  </section>
+
+</div>
+
+<script>'use strict';
+
+/* ========== Texts (English and Dutch) ========== */
+
+const TEXTS = {
+  en: {
+    title: 'Stage hours', thisWeek: 'This week', addToday: "Add today's hours",
+    entries: 'Entries', calendar: 'Calendar', settings: 'Settings',
+    addTitle: 'Add hours', date: 'Date', hoursWord: 'hours', noteOpt: 'Note (optional)', notePh: 'What did you work on?', latest: 'Latest',
+    save: h => `Save ${h} hours`, update: h => `Update to ${h} hours`,
+    finishOn: 'You finish on', lastDay: d => `Last day is ${d}`,
+    early: n => n === 1 ? '1 day early' : `${n} days early`,
+    late: n => n === 1 ? '1 day late' : `${n} days late`,
+    onLastDay: 'On the last day', complete: 'Minimum reached',
+    needPerDay: (h, d) => `Work ${h} h a day to finish on ${d}.`,
+    ofMin: m => `of ${m} h`, yourHours: 'Your hours', plan: h => `Plan for today: ${h} h`,
+    left: 'Left to do', waiting: 'Waiting for approval',
+    approveAll: 'Approve all', pendingNote: h => h ? `${h} h waiting for approval` : 'Everything approved', noEntries: 'No entries yet.',
+    locked: 'Over 14 days old: B3net no longer lets you fill this in.', lockedTag: 'locked', inOpening: 'in opening balance',
+    start: 'First day', end: 'Last day', minHours: 'Minimum hours', weekHint: 'Hours per weekday',
+    openTitle: 'Opening balance', openHint: 'Hours already in B3net, counted up to the date below.',
+    approved: 'Approved', pending: 'Not approved yet', asof: 'Counted up to',
+    daysOff: 'Days off', from: 'From', to: 'Until (optional)', label: 'Reason', add: 'Add', returnDays: 'School return days',
+    nothingAdded: 'Nothing added.', remove: 'Delete', darkMode: 'Dark mode', lightMode: 'Light mode',
+    weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    legend: { logged: 'Logged', short: 'Below plan', returnDay: 'Return day', dayOff: 'Day off', noWork: 'No work', lastDay: 'Last day' },
+    storedHere: 'Saved on this device only',
+    backup: 'Backup', exportBtn: 'Download backup', importBtn: 'Load backup',
+    backupHint: 'Use this to move your hours to another device.',
+    importDone: 'Backup loaded.', importFailed: 'That file could not be read.',
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  },
+  nl: {
+    title: 'Stage-uren', thisWeek: 'Deze week', addToday: 'Uren van vandaag invullen',
+    entries: 'Invoer', calendar: 'Kalender', settings: 'Instellingen',
+    addTitle: 'Uren invullen', date: 'Datum', hoursWord: 'uur', noteOpt: 'Notitie (optioneel)', notePh: 'Waar werkte je aan?', latest: 'Laatste',
+    save: h => `${h} uur opslaan`, update: h => `Wijzigen naar ${h} uur`,
+    finishOn: 'Je bent klaar op', lastDay: d => `Laatste dag is ${d}`,
+    early: n => n === 1 ? '1 dag eerder' : `${n} dagen eerder`,
+    late: n => n === 1 ? '1 dag later' : `${n} dagen later`,
+    onLastDay: 'Op de laatste dag', complete: 'Minimum bereikt',
+    needPerDay: (h, d) => `Werk ${h} uur per dag om op ${d} klaar te zijn.`,
+    ofMin: m => `van ${m} uur`, yourHours: 'Jouw uren', plan: h => `Plan voor vandaag: ${h} uur`,
+    left: 'Nog te doen', waiting: 'Wacht op goedkeuring',
+    approveAll: 'Alles goedkeuren', pendingNote: h => h ? `${h} uur wacht op goedkeuring` : 'Alles goedgekeurd', noEntries: 'Nog geen invoer.',
+    locked: 'Ouder dan 14 dagen: in B3net kun je dit niet meer invullen.', lockedTag: 'vergrendeld', inOpening: 'in beginsaldo',
+    start: 'Eerste dag', end: 'Laatste dag', minHours: 'Minimum uren', weekHint: 'Uren per weekdag',
+    openTitle: 'Beginsaldo', openHint: 'Uren die al in B3net staan, geteld t/m de datum hieronder.',
+    approved: 'Goedgekeurd', pending: 'Nog niet goedgekeurd', asof: 'Geteld t/m',
+    daysOff: 'Vrije dagen', from: 'Van', to: 'Tot (optioneel)', label: 'Reden', add: 'Toevoegen', returnDays: 'Terugkomdagen',
+    nothingAdded: 'Niets toegevoegd.', remove: 'Verwijderen', darkMode: 'Donkere modus', lightMode: 'Lichte modus',
+    weekdays: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
+    legend: { logged: 'Ingevuld', short: 'Onder plan', returnDay: 'Terugkomdag', dayOff: 'Vrije dag', noWork: 'Geen werk', lastDay: 'Laatste dag' },
+    storedHere: 'Alleen op dit apparaat opgeslagen',
+    backup: 'Back-up', exportBtn: 'Back-up downloaden', importBtn: 'Back-up laden',
+    backupHint: 'Gebruik dit om je uren naar een ander apparaat te verplaatsen.',
+    importDone: 'Back-up geladen.', importFailed: 'Dat bestand kan niet worden gelezen.',
+    months: ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
+  }
+};
+
+const ICONS = {
+  back: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  minus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+  moon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+  sun: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+};
+
+
+/* ========== Defaults and limits ========== */
+
+const DEFAULT_CONFIG = {
+  start: '2026-09-02',
+  end: '2027-02-05',
+  min: 620,
+  week: [0, 8, 8, 8, 8, 8, 0],            // Sunday first, like Date.getDay()
+  open: { approved: 208, pending: 56.75, asOf: '2026-11-16' },
+  off: [
+    { from: '2026-12-24', to: '2026-12-28', label: 'Christmas' },
+    { from: '2027-01-01', to: '2027-01-01', label: 'New Year' }
+  ],
+  ret: ['2026-12-09']
+};
+
+const LIMITS = {
+  hoursPerDay: 24, totalHours: 5000, entries: 1000, offRanges: 100, returnDays: 100,
+  rangeDays: 366, noteLength: 200, labelLength: 60, lookaheadDays: 900, lockAfterDays: 14
+};
+
+const STORAGE_KEYS = { state: 'stage-state', lang: 'stage-lang', theme: 'stage-theme' };
+
+
+/* ========== Date helpers (a day is a whole number counted from 1970-01-01) ========== */
+
+const MS_PER_DAY = 864e5;
+
+function dayNumber(dateString) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return Math.round(Date.UTC(year, month - 1, day) / MS_PER_DAY);
+}
+function dayString(day) {
+  return new Date(day * MS_PER_DAY).toISOString().slice(0, 10);
+}
+function weekdayOf(day) {
+  return new Date(day * MS_PER_DAY).getUTCDay();   // 0 = Sunday
+}
+function todayNumber() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const date = String(now.getDate()).padStart(2, '0');
+  return dayNumber(`${now.getFullYear()}-${month}-${date}`);
+}
+// True only for a real calendar date written as YYYY-MM-DD (so 2026-02-31 is rejected).
+function isDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const year = Number(value.slice(0, 4));
+  return year >= 2000 && year <= 2100 && dayString(dayNumber(value)) === value;
+}
+
+
+/* ========== Cleaning data before it is used ========== */
+/* Everything that comes from storage, a backup file or an input field passes through here. */
+
+function toHours(value, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.min(max, Math.max(0, number));
+}
+function cleanText(value, maxLength) {
+  return typeof value === 'string' ? value.slice(0, maxLength) : '';
+}
+function dateOr(value, fallback) {
+  return isDate(value) ? value : fallback;
+}
+
+function cleanWeek(raw) {
+  if (!Array.isArray(raw) || raw.length !== 7) return [...DEFAULT_CONFIG.week];
+  return raw.map(hours => toHours(hours, LIMITS.hoursPerDay));
+}
+function cleanOpening(raw) {
+  const open = raw && typeof raw === 'object' ? raw : {};
+  const hoursOr = (value, fallback) => value === undefined ? fallback : toHours(value, LIMITS.totalHours);
+  return {
+    approved: hoursOr(open.approved, DEFAULT_CONFIG.open.approved),
+    pending: hoursOr(open.pending, DEFAULT_CONFIG.open.pending),
+    asOf: dateOr(open.asOf, DEFAULT_CONFIG.open.asOf)
+  };
+}
+function cleanDaysOff(raw) {
+  if (!Array.isArray(raw)) return [];
+  const ranges = [];
+  for (const item of raw.slice(0, LIMITS.offRanges)) {
+    if (!item || !isDate(item.from)) continue;
+    const to = isDate(item.to) && item.to >= item.from ? item.to : item.from;
+    if (dayNumber(to) - dayNumber(item.from) > LIMITS.rangeDays) continue;
+    ranges.push({ from: item.from, to, label: cleanText(item.label, LIMITS.labelLength) });
+  }
+  return ranges;
+}
+function cleanReturnDays(raw) {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter(isDate))].slice(0, LIMITS.returnDays);
+}
+function cleanConfig(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  let start = dateOr(source.start, DEFAULT_CONFIG.start);
+  let end = dateOr(source.end, DEFAULT_CONFIG.end);
+  if (end < start) { start = DEFAULT_CONFIG.start; end = DEFAULT_CONFIG.end; }
+  return {
+    start, end,
+    min: toHours(source.min, LIMITS.totalHours) || DEFAULT_CONFIG.min,
+    week: cleanWeek(source.week),
+    open: cleanOpening(source.open),
+    off: source.off === undefined ? structuredClone(DEFAULT_CONFIG.off) : cleanDaysOff(source.off),
+    ret: source.ret === undefined ? [...DEFAULT_CONFIG.ret] : cleanReturnDays(source.ret)
+  };
+}
+function cleanLogs(raw) {
+  const logs = {};
+  if (!raw || typeof raw !== 'object') return logs;
+  const days = Object.keys(raw).filter(isDate).sort().slice(-LIMITS.entries);
+  for (const day of days) {
+    const entry = raw[day];
+    if (!entry || typeof entry !== 'object') continue;
+    logs[day] = {
+      h: toHours(entry.h, LIMITS.hoursPerDay),
+      note: cleanText(entry.note, LIMITS.noteLength),
+      ok: entry.ok === true
+    };
+  }
+  return logs;
+}
+function cleanState(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return { cfg: cleanConfig(source.cfg), logs: cleanLogs(source.logs) };
+}
+
+// Escape text before it goes into an HTML string.
+function esc(value) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(value).replace(/[&<>"']/g, ch => map[ch]);
+}
+
+
+/* ========== App state ========== */
+
+let state = cleanState({});
+let lang = 'en';
+let theme = 'light';
+let currentView = 'home';
+let shownMonth = null;           // months since year 0, set when the calendar opens
+let today = todayNumber();
+let hoursToLog = 8;
+
+const $ = selector => document.querySelector(selector);
+const text = () => TEXTS[lang];
+const showNumber = value => String(Math.round(value * 100) / 100);
+
+function shortDate(day) {
+  const [, month, date] = dayString(day).split('-').map(Number);
+  return `${date} ${text().months[month - 1].slice(0, 3)}`;
+}
+function fullDate(dateString) {
+  const [year, month, date] = dateString.split('-').map(Number);
+  return `${date} ${text().months[month - 1].slice(0, 3)} ${year}`;
+}
+
+
+/* ========== Calculations ========== */
+
+// Which days count as work days, and how many hours each one is worth.
+function buildRules(config) {
+  const daysOff = new Set();
+  for (const range of config.off) {
+    for (let day = dayNumber(range.from); day <= dayNumber(range.to); day++) daysOff.add(day);
+  }
+  const returnDays = new Set(config.ret.map(dayNumber));
+  const hoursOn = day => (daysOff.has(day) || returnDays.has(day)) ? 0 : config.week[weekdayOf(day)];
+  return { daysOff, returnDays, hoursOn };
+}
+
+// Opening balance plus every logged day after the "counted up to" date.
+function totalHours(config, logs) {
+  const openUntil = dayNumber(config.open.asOf);
+  let approved = config.open.approved;
+  let pending = config.open.pending;
+  for (const [date, entry] of Object.entries(logs)) {
+    if (dayNumber(date) <= openUntil) continue;
+    if (entry.ok) approved += entry.h; else pending += entry.h;
+  }
+  return { approved, pending };
+}
+
+function plannedHours(rules, fromDay, toDay) {
+  let total = 0;
+  for (let day = fromDay; day <= toDay; day++) total += rules.hoursOn(day);
+  return total;
+}
+function countWorkdays(rules, fromDay, toDay) {
+  let count = 0;
+  for (let day = fromDay; day <= toDay; day++) if (rules.hoursOn(day) > 0) count++;
+  return count;
+}
+// The day on which the remaining hours run out, working every planned day from fromDay.
+function findFinishDay(rules, fromDay, hoursLeft) {
+  for (let day = fromDay; day < fromDay + LIMITS.lookaheadDays; day++) {
+    hoursLeft -= rules.hoursOn(day);
+    if (hoursLeft <= 0) return day;
+  }
+  return null;
+}
+
+function getModel() {
+  const config = state.cfg;
+  const rules = buildRules(config);
+  const startDay = dayNumber(config.start);
+  const endDay = dayNumber(config.end);
+
+  const { approved, pending } = totalHours(config, state.logs);
+  const done = approved + pending;
+  const left = Math.max(0, config.min - done);
+
+  const lastCountedDay = state.logs[dayString(today)] ? today : today - 1;
+  const nextDay = Math.max(lastCountedDay + 1, startDay);
+  const shouldHave = plannedHours(rules, startDay, Math.min(lastCountedDay, endDay));
+  const finishDay = left > 0 ? findFinishDay(rules, nextDay, left) : null;
+  const workdaysLeft = countWorkdays(rules, nextDay, endDay);
+
+  return {
+    config, rules, endDay, approved, pending, done, left, shouldHave, finishDay,
+    openUntil: dayNumber(config.open.asOf),
+    neededPerDay: workdaysLeft > 0 ? left / workdaysLeft : null
+  };
+}
+
+
+/* ========== Drawing the screens ========== */
+
+function drawFinishCard(model) {
+  const t = text();
+  let bigText = '—';
+  let tagClass = '', tagText = '';
+
+  if (model.left <= 0) {
+    bigText = '✓'; tagClass = 'good'; tagText = t.complete;
+  } else if (model.finishDay !== null) {
+    bigText = shortDate(model.finishDay);
+    const daysLate = model.finishDay - model.endDay;
+    if (daysLate > 0) { tagClass = 'bad'; tagText = t.late(daysLate); }
+    else if (daysLate < 0) { tagClass = 'good'; tagText = t.early(-daysLate); }
+    else { tagClass = 'good'; tagText = t.onLastDay; }
+  }
+
+  let needNote = '';
+  const finishesLate = model.finishDay !== null && model.finishDay > model.endDay;
+  if (finishesLate && model.neededPerDay !== null) {
+    const hours = showNumber(Math.ceil(model.neededPerDay * 10) / 10);
+    needNote = `<div class="need-note">${esc(t.needPerDay(hours, shortDate(model.endDay)))}</div>`;
+  }
+
+  $('#finish-card').innerHTML =
+    `<span class="muted">${esc(t.finishOn)}</span>
+     <span class="finish-date">${esc(bigText)}</span>
+     <div class="finish-meta">
+       ${tagText ? `<span class="tag ${tagClass}">${esc(tagText)}</span>` : ''}
+       <span class="small muted">${esc(t.lastDay(shortDate(model.endDay)))}</span>
+     </div>${needNote}`;
+}
+
+function drawProgress(model) {
+  const t = text();
+  const total = Math.max(1, model.config.min);
+  const percent = hours => Math.min(100, Math.max(0, hours / total * 100));
+  $('#progress').innerHTML =
+    `<div class="progress-total"><b>${showNumber(model.done)} h</b><span class="muted small">${esc(t.ofMin(showNumber(total)))}</span></div>
+     <div class="bar" role="img" aria-label="${esc(showNumber(model.done))} / ${esc(showNumber(total))} h">
+       <i class="pending" style="width:${percent(model.done)}%"></i>
+       <i class="approved" style="width:${percent(model.approved)}%"></i>
+       <span class="plan-mark" style="left:calc(${percent(model.shouldHave)}% - 1px)"></span>
+     </div>
+     <div class="bar-caption"><span>${esc(t.yourHours)}</span><span>${esc(t.plan(showNumber(model.shouldHave)))}</span></div>`;
+}
+
+function drawTiles(model) {
+  const t = text();
+  $('#tiles').innerHTML =
+    `<div class="tile"><span>${esc(t.left)}</span><b>${showNumber(model.left)} h</b></div>
+     <div class="tile"><span>${esc(t.waiting)}</span><b>${showNumber(model.pending)} h</b></div>`;
+}
+
+// One square for each weekday of this week.
+function drawWeek(model) {
+  const t = text();
+  const monday = today - ((weekdayOf(today) + 6) % 7);
+  let html = '';
+  for (let i = 0; i < 5; i++) {
+    const day = monday + i;
+    const date = dayString(day);
+    const entry = state.logs[date];
+    const planned = model.rules.hoursOn(day);
+    let squareClass = '', label = '';
+
+    if (entry) { squareClass = 'worked'; label = showNumber(entry.h); }
+    else if (day <= model.openUntil && planned > 0) { squareClass = 'worked'; label = showNumber(planned); }
+    else if (planned === 0) { squareClass = 'free'; label = '–'; }
+    else if (day === today) { squareClass = 'today'; label = '?'; }
+
+    html += `<button type="button" data-action="pick-day" data-date="${date}" aria-label="${esc(shortDate(day))}">
+               <small>${t.weekdays[i]}</small><span class="square ${squareClass}">${esc(label)}</span></button>`;
+  }
+  $('#week').innerHTML = html;
+}
+
+function drawHome() {
+  const model = getModel();
+  drawFinishCard(model);
+  drawProgress(model);
+  drawTiles(model);
+  drawWeek(model);
+}
+
+function drawLogScreen() {
+  const t = text();
+  const date = $('#log-date').value;
+  const hasEntry = Boolean(state.logs[date]);
+
+  $('#hours-value').textContent = showNumber(hoursToLog);
+  $('#save-btn').textContent = hasEntry ? t.update(showNumber(hoursToLog)) : t.save(showNumber(hoursToLog));
+  $('#chips').innerHTML = [4, 6, 8, 0]
+    .map(hours => `<button type="button" data-chip="${hours}" aria-pressed="${hours === hoursToLog}">${hours}</button>`)
+    .join('');
+
+  const lockNote = $('#lock-note');
+  const tooOld = today - dayNumber(date) > LIMITS.lockAfterDays;
+  lockNote.hidden = !tooOld;
+  lockNote.textContent = tooOld ? t.locked : '';
+
+  const latestDates = Object.keys(state.logs).sort().reverse().slice(0, 2);
+  $('#latest').innerHTML = latestDates.length
+    ? `<div class="small muted" style="margin-bottom:6px">${esc(t.latest)}</div>
+       <ul class="list">${latestDates.map(d =>
+         `<li><span class="date">${esc(fullDate(d))}</span><span class="note"></span><span class="hours">${showNumber(state.logs[d].h)} h</span></li>`).join('')}</ul>`
+    : '';
+}
+
+function entryRow(date, entry, openUntil) {
+  const t = text();
+  const isLocked = today - dayNumber(date) > LIMITS.lockAfterDays;
+  const isOpening = dayNumber(date) <= openUntil;
+  const tags = (isLocked ? ` <span class="tag warn small">${esc(t.lockedTag)}</span>` : '')
+             + (isOpening ? ` <span class="tag warn small">${esc(t.inOpening)}</span>` : '');
+  return `<li>
+    <span class="date">${esc(fullDate(date))}</span>
+    <span class="hours">${showNumber(entry.h)} h</span>
+    <span class="note">${esc(entry.note)}${tags}</span>
+    <button class="icon-btn ${entry.ok ? 'on' : ''}" type="button" data-action="toggle-approved" data-date="${date}" aria-pressed="${entry.ok}" aria-label="Approved">✓</button>
+    <button class="icon-btn" type="button" data-action="delete-entry" data-date="${date}" aria-label="${esc(t.remove)}">×</button>
+  </li>`;
+}
+
+function drawEntries() {
+  const model = getModel();
+  const dates = Object.keys(state.logs).sort().reverse().slice(0, 60);
+  $('#pending-note').textContent = text().pendingNote(model.pending > 0 ? showNumber(model.pending) : 0);
+  $('#entries-list').innerHTML = dates.length
+    ? dates.map(date => entryRow(date, state.logs[date], model.openUntil)).join('')
+    : `<li class="empty">${esc(text().noEntries)}</li>`;
+}
+
+function calendarCellClass(day, model) {
+  const planned = model.rules.hoursOn(day);
+  const entry = state.logs[dayString(day)];
+  let cellClass = '';
+  if (model.rules.returnDays.has(day)) cellClass = 'return-day';
+  else if (model.rules.daysOff.has(day)) cellClass = 'day-off';
+  else if (planned === 0) cellClass = 'no-work';
+  if (entry && day > model.openUntil) cellClass = (planned > 0 && entry.h < planned - 0.01) ? 'short' : 'logged';
+  if (day === today) cellClass += ' today';
+  if (day === model.endDay) cellClass += ' last-day';
+  return cellClass;
+}
+
+function drawCalendar() {
+  const t = text();
+  const model = getModel();
+  if (shownMonth === null) {
+    const now = new Date(today * MS_PER_DAY);
+    shownMonth = now.getUTCFullYear() * 12 + now.getUTCMonth();
+  }
+  const year = Math.floor(shownMonth / 12);
+  const month = shownMonth % 12;
+  $('#month-name').textContent = `${t.months[month]} ${year}`;
+
+  const firstDay = Math.round(Date.UTC(year, month, 1) / MS_PER_DAY);
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const emptyCells = (weekdayOf(firstDay) + 6) % 7;      // week starts on Monday
+
+  let html = t.weekdays.map(name => `<div class="weekday">${name}</div>`).join('');
+  html += '<button class="blank" tabindex="-1" aria-hidden="true"></button>'.repeat(emptyCells);
+  for (let i = 0; i < daysInMonth; i++) {
+    const day = firstDay + i;
+    const entry = state.logs[dayString(day)];
+    const hoursNote = entry && day > model.openUntil ? `<small>${showNumber(entry.h)}</small>` : '';
+    html += `<button type="button" class="${calendarCellClass(day, model)}" data-action="pick-day" data-date="${dayString(day)}" aria-label="${esc(shortDate(day))}">${i + 1}${hoursNote}</button>`;
+  }
+  $('#calendar').innerHTML = html;
+
+  const key = (color, border, extra = '') => `<b style="background:${color};border:1px solid ${border};${extra}"></b>`;
+  const items = [
+    [key('var(--good-bg)', 'var(--accent-bar)'), t.legend.logged],
+    [key('var(--bad-bg)', 'var(--bad)'), t.legend.short],
+    [key('var(--warn-bg)', 'var(--warn)'), t.legend.returnDay],
+    [key('var(--track)', 'var(--line)'), t.legend.dayOff],
+    [key('var(--bg)', 'var(--line)'), t.legend.noWork],
+    [key('var(--surface)', 'var(--line)', 'box-shadow:inset 0 -3px 0 var(--accent-bar)'), t.legend.lastDay]
+  ];
+  $('#legend').innerHTML = items.map(([swatch, name]) => `<span>${swatch}${esc(name)}</span>`).join('');
+}
+
+function removableRow(label, note, action, value) {
+  return `<li><span class="date">${label}</span><span class="note">${note}</span>
+    <button class="icon-btn" type="button" data-action="${action}" data-value="${esc(value)}" aria-label="${esc(text().remove)}">×</button></li>`;
+}
+
+function drawSettingsLists() {
+  const t = text();
+  const config = state.cfg;
+  $('#off-list').innerHTML = config.off.length
+    ? config.off.map((range, index) => {
+        const span = range.to !== range.from ? ` – ${esc(fullDate(range.to))}` : '';
+        return removableRow(esc(fullDate(range.from)) + span, esc(range.label), 'delete-off', index);
+      }).join('')
+    : `<li class="empty">${esc(t.nothingAdded)}</li>`;
+  $('#return-list').innerHTML = config.ret.length
+    ? [...config.ret].sort().map(date => removableRow(esc(fullDate(date)), '', 'delete-return', date)).join('')
+    : `<li class="empty">${esc(t.nothingAdded)}</li>`;
+}
+
+// Fill the settings fields, unless the person is typing in one of them.
+function fillSettingsFields() {
+  if (document.activeElement && $('#view-settings').contains(document.activeElement)) return;
+  const config = state.cfg;
+  $('#set-start').value = config.start;
+  $('#set-end').value = config.end;
+  $('#set-min').value = config.min;
+  $('#set-approved').value = config.open.approved;
+  $('#set-pending').value = config.open.pending;
+  $('#set-asof').value = config.open.asOf;
+  $('#week-hours').innerHTML = [1, 2, 3, 4, 5, 6, 0].map((weekday, i) =>
+    `<label for="hours-${weekday}"><span>${text().weekdays[i]}</span>
+       <input id="hours-${weekday}" data-weekday="${weekday}" type="number" inputmode="decimal" step="0.25" min="0" max="24" value="${config.week[weekday]}"></label>`).join('');
+}
+
+function draw() {
+  if (currentView === 'home') drawHome();
+  else if (currentView === 'log') drawLogScreen();
+  else if (currentView === 'entries') drawEntries();
+  else if (currentView === 'calendar') drawCalendar();
+  else if (currentView === 'settings') drawSettingsLists();
+}
+
+function showView(name) {
+  currentView = name;
+  for (const view of document.querySelectorAll('.view')) view.hidden = (view.id !== `view-${name}`);
+  draw();
+  window.scrollTo(0, 0);
+}
+
+function openLogScreen(date) {
+  const day = isDate(date) ? date : dayString(today);
+  const entry = state.logs[day];
+  $('#log-date').value = day;
+  $('#log-note').value = entry ? entry.note : '';
+  hoursToLog = entry ? entry.h : getModel().rules.hoursOn(dayNumber(day));
+  showView('log');
+}
+
+
+/* ========== Language and theme ========== */
+
+function applyLanguage() {
+  const t = text();
+  document.documentElement.lang = lang;
+  for (const el of document.querySelectorAll('[data-text]')) {
+    if (typeof t[el.dataset.text] === 'string') el.textContent = t[el.dataset.text];
+  }
+  for (const el of document.querySelectorAll('[data-placeholder]')) el.placeholder = t[el.dataset.placeholder] || '';
+  for (const el of document.querySelectorAll('[data-lang]')) el.setAttribute('aria-pressed', String(el.dataset.lang === lang));
+}
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', theme);
+  const button = $('#theme-btn');
+  button.innerHTML = theme === 'dark' ? ICONS.sun : ICONS.moon;
+  button.setAttribute('aria-label', theme === 'dark' ? text().lightMode : text().darkMode);
+}
+function fillIcons() {
+  for (const el of document.querySelectorAll('[data-icon]')) el.innerHTML = ICONS[el.dataset.icon] || '';
+}
+
+
+/* ========== Saving ========== */
+
+function saveState() {
+  writeSetting(STORAGE_KEYS.state, JSON.stringify(state));
+}
+
+// Called after every change: clean the data, redraw, save.
+function commit() {
+  state = cleanState(state);
+  draw();
+  saveState();
+}
+
+function readSetting(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function writeSetting(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+}
+
+
+/* ========== Buttons and forms ========== */
+
+const clickActions = {
+  'toggle-approved': el => {
+    const entry = state.logs[el.dataset.date];
+    if (entry) { entry.ok = !entry.ok; commit(); }
+  },
+  'delete-entry': el => { delete state.logs[el.dataset.date]; commit(); },
+  'delete-off': el => { state.cfg.off.splice(Number(el.dataset.value), 1); commit(); },
+  'delete-return': el => { state.cfg.ret = state.cfg.ret.filter(date => date !== el.dataset.value); commit(); },
+  'pick-day': el => openLogScreen(el.dataset.date)
+};
+
+document.addEventListener('click', event => {
+  const langButton = event.target.closest('[data-lang]');
+  if (langButton) {
+    lang = langButton.dataset.lang === 'nl' ? 'nl' : 'en';
+    writeSetting(STORAGE_KEYS.lang, lang);
+    applyLanguage(); applyTheme(); fillSettingsFields(); draw();
+    return;
+  }
+  if (event.target.closest('#theme-btn')) {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    writeSetting(STORAGE_KEYS.theme, theme);
+    applyTheme();
+    return;
+  }
+  const goButton = event.target.closest('[data-go]');
+  if (goButton) { showView(goButton.dataset.go); return; }
+
+  const chip = event.target.closest('[data-chip]');
+  if (chip) { hoursToLog = toHours(chip.dataset.chip, LIMITS.hoursPerDay); drawLogScreen(); return; }
+
+  const actionButton = event.target.closest('[data-action]');
+  if (!actionButton) return;
+  const action = clickActions[actionButton.dataset.action];
+  const date = actionButton.dataset.date;
+  if (action && (date === undefined || isDate(date))) action(actionButton);
+});
+
+$('#add-today-btn').addEventListener('click', () => openLogScreen());
+$('#less-btn').addEventListener('click', () => { hoursToLog = Math.max(0, hoursToLog - 0.5); drawLogScreen(); });
+$('#more-btn').addEventListener('click', () => { hoursToLog = Math.min(LIMITS.hoursPerDay, hoursToLog + 0.5); drawLogScreen(); });
+$('#prev-month').addEventListener('click', () => { shownMonth--; drawCalendar(); });
+$('#next-month').addEventListener('click', () => { shownMonth++; drawCalendar(); });
+$('#approve-all-btn').addEventListener('click', () => {
+  for (const entry of Object.values(state.logs)) entry.ok = true;
+  commit();
+});
+
+$('#log-date').addEventListener('change', () => {
+  const date = $('#log-date').value;
+  if (isDate(date)) openLogScreen(date);
+});
+$('#save-btn').addEventListener('click', () => {
+  const date = $('#log-date').value;
+  if (!isDate(date)) return;
+  const previous = state.logs[date];
+  state.logs[date] = { h: hoursToLog, note: $('#log-note').value, ok: previous ? previous.ok : false };
+  state = cleanState(state);
+  saveState();
+  showView('home');
+});
+
+$('#off-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const from = $('#off-from').value;
+  const to = $('#off-to').value || from;
+  if (!isDate(from)) return;
+  state.cfg.off.push({ from, to, label: $('#off-label').value });
+  state.cfg.off.sort((a, b) => a.from.localeCompare(b.from));
+  event.target.reset();
+  commit();
+});
+$('#return-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const date = $('#return-date').value;
+  if (!isDate(date)) return;
+  state.cfg.ret.push(date);
+  event.target.reset();
+  commit();
+});
+
+$('#export-btn').addEventListener('click', exportBackup);
+$('#import-btn').addEventListener('click', () => $('#import-file').click());
+$('#import-file').addEventListener('change', event => {
+  importBackup(event.target.files[0]);
+  event.target.value = '';
+});
+
+// One handler for every field on the settings screen.
+const settingFields = {
+  'set-start':    (config, value) => { if (isDate(value)) config.start = value; },
+  'set-end':      (config, value) => { if (isDate(value)) config.end = value; },
+  'set-min':      (config, value) => { config.min = toHours(value, LIMITS.totalHours); },
+  'set-approved': (config, value) => { config.open.approved = toHours(value, LIMITS.totalHours); },
+  'set-pending':  (config, value) => { config.open.pending = toHours(value, LIMITS.totalHours); },
+  'set-asof':     (config, value) => { if (isDate(value)) config.open.asOf = value; }
+};
+$('#view-settings').addEventListener('change', event => {
+  const field = event.target;
+  if (settingFields[field.id]) settingFields[field.id](state.cfg, field.value);
+  else if (field.dataset.weekday !== undefined) state.cfg.week[Number(field.dataset.weekday)] = toHours(field.value, LIMITS.hoursPerDay);
+  else return;
+  commit();
+});
+
+
+/* ========== Start ========== */
+
+function loadSavedState() {
+  try { state = cleanState(JSON.parse(readSetting(STORAGE_KEYS.state))); } catch (e) { state = cleanState({}); }
+}
+
+// Backup file: lets you move your hours between devices.
+function exportBackup() {
+  const file = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(file);
+  link.download = `stage-hours-${dayString(today)}.json`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+function importBackup(file) {
+  if (!file || file.size > 1000000) { alert(text().importFailed); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      state = cleanState(JSON.parse(reader.result));        // checked like any other input
+      commit();
+      fillSettingsFields();
+      alert(text().importDone);
+    } catch (e) {
+      alert(text().importFailed);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function start() {
+  lang = readSetting(STORAGE_KEYS.lang) === 'nl' ? 'nl' : 'en';
+  theme = readSetting(STORAGE_KEYS.theme) === 'dark' ? 'dark' : 'light';
+  loadSavedState();
+  fillIcons();
+  applyLanguage();
+  applyTheme();
+  fillSettingsFields();
+  showView('home');
+  setInterval(() => {                                        // roll over at midnight
+    const now = todayNumber();
+    if (now !== today) { today = now; if (currentView !== 'log') draw(); }
+  }, 60000);
+}
+
+start();
+</script>
+</body>
+</html>
