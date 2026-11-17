@@ -2,7 +2,9 @@
 
 const TEXTS = {
   en: {
-    done: 'Done', toWord: 'to', title: 'Stage hours', thisWeek: 'This week', addToday: "Add today's hours",
+    done: 'Done', toWord: 'to', change: 'change',
+    pickTitle: 'Which internship are you in?', pickHint: 'You can switch later from the home screen.',
+    periodName: n => n === 1 ? '1st internship' : '2nd internship', opensOn: d => `Opens on ${d}`, title: 'Stage hours', thisWeek: 'This week', addToday: "Add today's hours",
     entries: 'Entries', calendar: 'Calendar', settings: 'Settings',
     addTitle: 'Add hours', date: 'Date', hoursWord: 'hours', noteOpt: 'Note (optional)', notePh: 'What did you work on?', latest: 'Latest',
     save: h => `Save ${h} hours`, update: h => `Update to ${h} hours`,
@@ -24,15 +26,17 @@ const TEXTS = {
     legend: { logged: 'Logged', short: 'Below plan', returnDay: 'Return day', dayOff: 'Day off', noWork: 'No work', lastDay: 'Last day' },
     storedHere: 'Saved on this device only',
     setupTitle: 'Set up your internship', setupHint: 'Your hours stay on this device. You can change everything later in Settings.',
-    startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: 'Your first day must be between 2 Sep 2026 and 5 Feb 2027.',
-    resetBtn: 'Erase my data and start over', resetConfirm: 'Erase all your hours and settings on this device?',
+    startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: (a, b) => `Your first day must be between ${a} and ${b}.`,
+    resetBtn: 'Erase my data and start over', resetConfirm: 'Erase the hours and settings of this internship on this device?',
     backup: 'Backup', exportBtn: 'Download backup', importBtn: 'Load backup',
     backupHint: 'Use this to move your hours to another device.',
     importDone: 'Backup loaded.', importFailed: 'That file could not be read.',
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   },
   nl: {
-    done: 'Klaar', toWord: 'tot', title: 'Stage-uren', thisWeek: 'Deze week', addToday: 'Uren van vandaag invullen',
+    done: 'Klaar', toWord: 'tot', change: 'wijzig',
+    pickTitle: 'In welke stage zit je?', pickHint: 'Je kunt later wisselen op het beginscherm.',
+    periodName: n => `${n}e stage`, opensOn: d => `Opent op ${d}`, title: 'Stage-uren', thisWeek: 'Deze week', addToday: 'Uren van vandaag invullen',
     entries: 'Invoer', calendar: 'Kalender', settings: 'Instellingen',
     addTitle: 'Uren invullen', date: 'Datum', hoursWord: 'uur', noteOpt: 'Notitie (optioneel)', notePh: 'Waar werkte je aan?', latest: 'Laatste',
     save: h => `${h} uur opslaan`, update: h => `Wijzigen naar ${h} uur`,
@@ -54,8 +58,8 @@ const TEXTS = {
     legend: { logged: 'Ingevuld', short: 'Onder plan', returnDay: 'Terugkomdag', dayOff: 'Vrije dag', noWork: 'Geen werk', lastDay: 'Laatste dag' },
     storedHere: 'Alleen op dit apparaat opgeslagen',
     setupTitle: 'Stel je stage in', setupHint: 'Je uren blijven op dit apparaat. Je kunt alles later aanpassen bij Instellingen.',
-    startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: 'Je eerste dag moet tussen 2 sep 2026 en 5 feb 2027 liggen.',
-    resetBtn: 'Mijn gegevens wissen en opnieuw beginnen', resetConfirm: 'Alle uren en instellingen op dit apparaat wissen?',
+    startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: (a, b) => `Je eerste dag moet tussen ${a} en ${b} liggen.`,
+    resetBtn: 'Mijn gegevens wissen en opnieuw beginnen', resetConfirm: 'De uren en instellingen van deze stage op dit apparaat wissen?',
     backup: 'Back-up', exportBtn: 'Back-up downloaden', importBtn: 'Back-up laden',
     backupHint: 'Gebruik dit om je uren naar een ander apparaat te verplaatsen.',
     importDone: 'Back-up geladen.', importFailed: 'Dat bestand kan niet worden gelezen.',
@@ -79,7 +83,7 @@ const LIMITS = {
   rangeDays: 366, noteLength: 200, labelLength: 60, lookaheadDays: 900, lockAfterDays: 14
 };
 
-const STORAGE_KEYS = { state: 'stage-state', lang: 'stage-lang', theme: 'stage-theme' };
+const STORAGE_KEYS = { state: 'stage-state', lang: 'stage-lang', theme: 'stage-theme', period: 'stage-period' };
 
 const MS_PER_DAY = 864e5;
 
@@ -107,16 +111,15 @@ function isDate(value) {
 }
 
 // Set by the school. Not editable in the app, change them here if the planning changes.
-const REQUIRED_HOURS = 620;                 // first internship
-const OFFICIAL_FIRST_DAY = '2026-09-02';
-const OFFICIAL_LAST_DAY = '2027-02-05';
+// 'opens' is the day the period can be picked, null means always.
+const PERIODS = {
+  1: { hours: 620, first: '2026-09-02', last: '2027-02-05', opens: null },
+  2: { hours: 424, first: '2027-02-08', last: '2027-06-04', opens: '2027-02-01' }
+};
 
 function buildDefaultConfig() {
   const first = todayNumber();
   return {
-    start: OFFICIAL_FIRST_DAY,
-    end: OFFICIAL_LAST_DAY,
-    min: REQUIRED_HOURS,
     week: [0, 8, 8, 8, 8, 8, 0],            // Sunday first, like Date.getDay()
     open: { approved: 0, pending: 0, asOf: dayString(first - 1) },
     off: [],
@@ -165,15 +168,16 @@ function cleanReturnDays(raw) {
   if (!Array.isArray(raw)) return [];
   return [...new Set(raw.filter(isDate))].slice(0, LIMITS.returnDays);
 }
-function cleanConfig(raw) {
+function cleanConfig(raw, id) {
   const source = raw && typeof raw === 'object' ? raw : {};
-  // Only the first day can differ per person (late starters), never the last day or the 620.
-  let start = dateOr(source.start, OFFICIAL_FIRST_DAY);
-  if (start < OFFICIAL_FIRST_DAY || start > OFFICIAL_LAST_DAY) start = OFFICIAL_FIRST_DAY;
+  const official = PERIODS[id];
+  // Only the first day can differ per person (late starters), never the last day or the hours.
+  let start = dateOr(source.start, official.first);
+  if (start < official.first || start > official.last) start = official.first;
   return {
     start,
-    end: OFFICIAL_LAST_DAY,
-    min: REQUIRED_HOURS,
+    end: official.last,
+    min: official.hours,
     week: cleanWeek(source.week),
     open: cleanOpening(source.open),
     off: source.off === undefined ? structuredClone(DEFAULT_CONFIG.off) : cleanDaysOff(source.off),
@@ -195,9 +199,9 @@ function cleanLogs(raw) {
   }
   return logs;
 }
-function cleanState(raw) {
+function cleanState(raw, id = period) {
   const source = raw && typeof raw === 'object' ? raw : {};
-  return { cfg: cleanConfig(source.cfg), logs: cleanLogs(source.logs) };
+  return { cfg: cleanConfig(source.cfg, id), logs: cleanLogs(source.logs), ready: source.ready === true };
 }
 
 function esc(value) {
@@ -205,6 +209,8 @@ function esc(value) {
   return String(value).replace(/[&<>"']/g, ch => map[ch]);
 }
 
+let period = 1;                  // which internship is open
+let periodData = {};             // saved state of both periods, state below is the open one
 let state = cleanState({});
 let lang = 'en';
 let theme = 'light';
@@ -361,6 +367,7 @@ function drawWeek(model) {
 }
 
 function drawHome() {
+  $('#period-btn').textContent = `${text().periodName(period)} (${text().change})`;
   const model = getModel();
   drawFinishCard(model);
   drawProgress(model);
@@ -503,12 +510,49 @@ function fillSettingsFields() {
 function fillSetupFields() {
   const config = state.cfg;
   $('#setup-start').value = config.start;
-  $('#setup-start').min = OFFICIAL_FIRST_DAY;
-  $('#setup-start').max = OFFICIAL_LAST_DAY;
+  $('#setup-start').min = PERIODS[period].first;
+  $('#setup-start').max = PERIODS[period].last;
   $('#setup-approved').value = config.open.approved;
   $('#setup-pending').value = config.open.pending;
   $('#setup-week').innerHTML = weekHoursInputs('setup-hours', config.week);
   $('#setup-error').hidden = true;
+  fillSetupText();
+}
+
+function fillSetupText() {
+  const official = PERIODS[period];
+  const t = text();
+  $('#setup-period').textContent = `${t.periodName(period)}: ${fullDate(official.first)} ${t.toWord} ${fullDate(official.last)}, ${official.hours} h`;
+  $('#setup-error').textContent = t.setupError(fullDate(official.first), fullDate(official.last));
+}
+
+function isUnlocked(id) {
+  const opens = PERIODS[id].opens;
+  return opens === null || today >= dayNumber(opens);
+}
+
+function drawPeriodPicker() {
+  const t = text();
+  $('#period-list').innerHTML = [1, 2].map(id => {
+    const official = PERIODS[id];
+    const locked = !isUnlocked(id);
+    const note = locked ? `<span class="small">${esc(t.opensOn(fullDate(official.opens)))}</span>` : '';
+    return `<button class="period-btn" type="button" data-period="${id}" aria-pressed="${id === period}" ${locked ? 'disabled' : ''}>
+      <b>${esc(t.periodName(id))}</b>
+      <span class="small">${esc(fullDate(official.first))} ${esc(t.toWord)} ${esc(fullDate(official.last))}, ${official.hours} h</span>${note}</button>`;
+  }).join('');
+}
+
+function switchPeriod(id) {
+  if (!PERIODS[id] || !isUnlocked(id)) return;
+  periodData[period] = state;
+  period = id;
+  state = periodData[id];
+  writeSetting(STORAGE_KEYS.period, String(id));
+  shownMonth = null;
+  fillSettingsFields();
+  fillSetupFields();
+  showView(state.ready ? 'home' : 'setup');
 }
 
 function draw() {
@@ -517,6 +561,7 @@ function draw() {
   else if (currentView === 'entries') drawEntries();
   else if (currentView === 'calendar') drawCalendar();
   else if (currentView === 'settings') drawSettingsLists();
+  else if (currentView === 'period') drawPeriodPicker();
 }
 
 function showView(name) {
@@ -555,7 +600,8 @@ function fillIcons() {
 }
 
 function saveState() {
-  writeSetting(STORAGE_KEYS.state, JSON.stringify(state));
+  periodData[period] = state;
+  writeSetting(STORAGE_KEYS.state, JSON.stringify({ v: 2, periods: periodData }));
 }
 
 function commit() {
@@ -588,6 +634,7 @@ document.addEventListener('click', event => {
     lang = langButton.dataset.lang === 'nl' ? 'nl' : 'en';
     writeSetting(STORAGE_KEYS.lang, lang);
     applyLanguage(); applyTheme(); fillSettingsFields(); draw();
+    fillSetupText();
     document.querySelectorAll('#setup-week label span').forEach((label, i) => { label.textContent = text().weekdays[i]; });
     return;
   }
@@ -597,6 +644,9 @@ document.addEventListener('click', event => {
     applyTheme();
     return;
   }
+  const periodButton = event.target.closest('[data-period]');
+  if (periodButton) { switchPeriod(Number(periodButton.dataset.period)); return; }
+
   const goButton = event.target.closest('[data-go]');
   if (goButton) { showView(goButton.dataset.go); return; }
 
@@ -611,6 +661,7 @@ document.addEventListener('click', event => {
 });
 
 $('#add-today-btn').addEventListener('click', () => openLogScreen());
+$('#period-btn').addEventListener('click', () => showView('period'));
 $('#less-btn').addEventListener('click', () => { hoursToLog = Math.max(0, hoursToLog - 0.5); drawLogScreen(); });
 $('#more-btn').addEventListener('click', () => { hoursToLog = Math.min(LIMITS.hoursPerDay, hoursToLog + 0.5); drawLogScreen(); });
 $('#prev-month').addEventListener('click', () => { shownMonth--; drawCalendar(); });
@@ -663,15 +714,15 @@ $('#import-file').addEventListener('change', event => {
 $('#setup-import-btn').addEventListener('click', () => $('#import-file').click());
 $('#reset-btn').addEventListener('click', () => {
   if (!window.confirm(text().resetConfirm)) return;
-  try { localStorage.removeItem(STORAGE_KEYS.state); } catch (e) { /* ignore */ }
   state = cleanState({});
+  saveState();
   fillSetupFields();
   showView('setup');
 });
 $('#setup-form').addEventListener('submit', event => {
   event.preventDefault();
   const start = $('#setup-start').value;
-  if (!isDate(start) || start < OFFICIAL_FIRST_DAY || start > OFFICIAL_LAST_DAY) { $('#setup-error').hidden = false; return; }
+  if (!isDate(start) || start < PERIODS[period].first || start > PERIODS[period].last) { $('#setup-error').hidden = false; return; }
   const week = [0, 0, 0, 0, 0, 0, 0];
   for (const input of document.querySelectorAll('#setup-week input')) {
     week[Number(input.dataset.weekday)] = toHours(input.value, LIMITS.hoursPerDay);
@@ -682,7 +733,8 @@ $('#setup-form').addEventListener('submit', event => {
       open: { approved: $('#setup-approved').value, pending: $('#setup-pending').value, asOf: dayString(today - 1) },
       off: [], ret: []
     },
-    logs: {}
+    logs: {},
+    ready: true
   });
   commit();
   fillSettingsFields();
@@ -702,12 +754,30 @@ $('#view-settings').addEventListener('change', event => {
   commit();
 });
 
+// Reads the saved data. The first version saved one period as { cfg, logs }, that is treated as period 1.
+function loadPeriods(raw) {
+  const loaded = {};
+  if (raw && typeof raw === 'object' && raw.periods && typeof raw.periods === 'object') {
+    for (const id of [1, 2]) if (raw.periods[id]) loaded[id] = cleanState(raw.periods[id], id);
+  } else if (raw && typeof raw === 'object' && raw.cfg) {
+    loaded[1] = { ...cleanState(raw, 1), ready: true };
+  }
+  for (const id of [1, 2]) if (!loaded[id]) loaded[id] = cleanState({}, id);
+  return loaded;
+}
+
 function loadSavedState() {
-  try { state = cleanState(JSON.parse(readSetting(STORAGE_KEYS.state))); } catch (e) { state = cleanState({}); }
+  let saved = null;
+  try { saved = JSON.parse(readSetting(STORAGE_KEYS.state)); } catch (e) { saved = null; }
+  periodData = loadPeriods(saved);
+  const savedPeriod = Number(readSetting(STORAGE_KEYS.period));
+  period = PERIODS[savedPeriod] && isUnlocked(savedPeriod) ? savedPeriod : 1;
+  state = periodData[period];
 }
 
 function exportBackup() {
-  const file = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  periodData[period] = state;
+  const file = new Blob([JSON.stringify({ v: 2, periods: periodData }, null, 2)], { type: 'application/json' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(file);
   link.download = `stage-hours-${dayString(today)}.json`;
@@ -719,10 +789,17 @@ function importBackup(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      state = cleanState(JSON.parse(reader.result));        // checked like any other input
+      const imported = loadPeriods(JSON.parse(reader.result));      // checked like any other input
+      for (const id of [1, 2]) {
+        if (imported[id].ready) periodData[id] = imported[id];
+      }
+      if (!periodData[period].ready) period = periodData[1].ready ? 1 : 2;
+      state = periodData[period];
+      writeSetting(STORAGE_KEYS.period, String(period));
       commit();
       fillSettingsFields();
-      if (currentView === 'setup') showView('home');
+      fillSetupFields();
+      showView('home');
       alert(text().importDone);
     } catch (e) {
       alert(text().importFailed);
@@ -731,17 +808,23 @@ function importBackup(file) {
   reader.readAsText(file);
 }
 
+function registerOfflineWorker() {
+  const secure = location.protocol === 'https:' || location.hostname === 'localhost';
+  if ('serviceWorker' in navigator && secure) navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
 function start() {
   lang = readSetting(STORAGE_KEYS.lang) === 'nl' ? 'nl' : 'en';
   theme = readSetting(STORAGE_KEYS.theme) === 'dark' ? 'dark' : 'light';
-  const firstVisit = readSetting(STORAGE_KEYS.state) === null;
+  const firstVisit = readSetting(STORAGE_KEYS.state) === null && readSetting(STORAGE_KEYS.period) === null;
   loadSavedState();
   fillIcons();
   applyLanguage();
   applyTheme();
   fillSettingsFields();
   fillSetupFields();
-  showView(firstVisit ? 'setup' : 'home');
+  showView(firstVisit ? 'period' : state.ready ? 'home' : 'setup');
+  registerOfflineWorker();
   setInterval(() => {                                        // roll over at midnight
     const now = todayNumber();
     if (now !== today) { today = now; if (currentView !== 'log') draw(); }

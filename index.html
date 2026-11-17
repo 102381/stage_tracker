@@ -3,9 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Stage hours</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#0e6e5b">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,6 +26,7 @@
         </div>
       </div>
     </div>
+    <button class="period-chip" type="button" id="period-btn"></button>
     <div class="hero" id="finish-card"></div>
     <div id="progress"></div>
     <div>
@@ -111,6 +116,19 @@
     <button class="small-btn" type="button" id="reset-btn" data-text="resetBtn"></button>
   </section>
 
+  <section class="view" id="view-period" hidden>
+    <div class="top">
+      <span class="brand" data-text="title"></span>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="nl">NL</button>
+      </div>
+    </div>
+    <h2 data-text="pickTitle"></h2>
+    <div class="period-list" id="period-list"></div>
+    <div class="small muted" data-text="pickHint"></div>
+  </section>
+
   <section class="view" id="view-setup" hidden>
     <div class="top">
       <span class="brand" data-text="title"></span>
@@ -120,6 +138,7 @@
       </div>
     </div>
     <h2 data-text="setupTitle"></h2>
+    <div class="small muted" id="setup-period"></div>
     <div class="small muted" data-text="setupHint"></div>
     <form class="stack" id="setup-form" novalidate>
       <div class="field-grid">
@@ -133,7 +152,7 @@
         <label for="setup-approved"><span data-text="approved"></span><input id="setup-approved" type="number" step="0.25" min="0" max="5000"></label>
         <label for="setup-pending"><span data-text="pending"></span><input id="setup-pending" type="number" step="0.25" min="0" max="5000"></label>
       </div>
-      <div class="lock-note" id="setup-error" hidden data-text="setupError"></div>
+      <div class="lock-note" id="setup-error" hidden></div>
       <button class="big-btn" type="submit" data-text="startBtn"></button>
       <button class="small-btn" type="button" id="setup-import-btn" data-text="haveBackup"></button>
     </form>
