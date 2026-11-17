@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue'
-import { app, t, state, fullDate, commit, exportBackup, resetPeriod } from '../store.js'
-import { PERIODS, LIMITS, isDate, toHours } from '../logic.js'
+import { t, state, fullDate, commit, exportBackup, resetPeriod } from '../store.js'
+import { LIMITS, isDate, toHours } from '../logic.js'
 import { ICONS } from '../icons.js'
 import BackHeader from '../components/BackHeader.vue'
+import DateInput from '../components/DateInput.vue'
 
 const weekdayOrder = [1, 2, 3, 4, 5, 6, 0]    // Monday first, Sunday last
 
@@ -13,9 +14,9 @@ const offTo = ref('')
 const offLabel = ref('')
 const returnDate = ref('')
 
-function setStart(event) {
-  if (!isDate(event.target.value)) return
-  state.value.cfg.start = event.target.value
+function setStart(value) {
+  if (!isDate(value)) return
+  state.value.cfg.start = value
   commit()
 }
 function setOpeningHours(field, event) {
@@ -59,9 +60,7 @@ function chooseBackup() {
     <BackHeader :title="t.settings" />
 
     <div class="field-grid">
-      <label for="set-start"><span>{{ t.start }}</span>
-        <input id="set-start" type="date" :value="state.cfg.start" :min="PERIODS[app.period].first" :max="PERIODS[app.period].last" @change="setStart">
-      </label>
+      <div class="field"><span>{{ t.start }}</span><DateInput id="set-start" :model-value="state.cfg.start" @update:model-value="setStart" /></div>
     </div>
 
     <h3>{{ t.weekHint }}</h3>
@@ -84,8 +83,8 @@ function chooseBackup() {
 
     <h3>{{ t.daysOff }}</h3>
     <form class="inline-form" id="off-form" @submit.prevent="addDayOff">
-      <label for="off-from"><span>{{ t.from }}</span><input id="off-from" type="date" required v-model="offFrom"></label>
-      <label for="off-to"><span>{{ t.to }}</span><input id="off-to" type="date" v-model="offTo"></label>
+      <div class="field"><span>{{ t.from }}</span><DateInput id="off-from" v-model="offFrom" /></div>
+      <div class="field"><span>{{ t.to }}</span><DateInput id="off-to" v-model="offTo" /></div>
       <label for="off-label"><span>{{ t.label }}</span><input id="off-label" type="text" maxlength="60" v-model="offLabel"></label>
       <button class="small-btn" type="submit">{{ t.add }}</button>
     </form>
@@ -100,7 +99,7 @@ function chooseBackup() {
 
     <h3>{{ t.returnDays }}</h3>
     <form class="inline-form" id="return-form" @submit.prevent="addReturnDay">
-      <label for="return-date"><span>{{ t.date }}</span><input id="return-date" type="date" required v-model="returnDate"></label>
+      <div class="field"><span>{{ t.date }}</span><DateInput id="return-date" v-model="returnDate" /></div>
       <button class="small-btn" type="submit">{{ t.add }}</button>
     </form>
     <ul class="list" id="return-list">

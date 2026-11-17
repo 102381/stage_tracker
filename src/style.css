@@ -16,7 +16,7 @@
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);padding-block:16px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-button,input{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .app{max-width:440px;margin:0 auto}
@@ -77,10 +77,9 @@ h3{font:700 13px/1.2 var(--font);margin:8px 0 0;text-transform:uppercase;letter-
 .small-btn{background:transparent;color:var(--accent);border:1px solid var(--line);min-height:44px;font-size:14px;border-radius:var(--radius);padding:0 14px;font-weight:600;cursor:pointer}
 .sync-note{font-size:12px;color:var(--muted);text-align:center}
 
-input{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);min-height:48px;padding:0 14px;width:100%;min-width:0}
-label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
-.date-row{display:flex;justify-content:center}
-.date-row input{width:auto;border-radius:var(--radius);text-align:center;font-weight:600;padding:0 20px}
+input,select{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);min-height:48px;padding:0 14px;width:100%;min-width:0}
+label,.field{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
+.date-row{display:block}
 .lock-note{font-size:13px;color:var(--warn);text-align:center}
 .stepper{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .round-btn{width:64px;height:64px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
@@ -120,6 +119,7 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
 .week-hours input{padding:0 2px;text-align:center}
 .inline-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .inline-form>label{flex:1 1 120px}
+.inline-form>.field{flex:1 1 220px}
 
 @media (prefers-reduced-motion:no-preference){.bar i{transition:width .4s ease}}
 
@@ -131,3 +131,8 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
 .period-btn b{font-size:18px}
 .period-btn[aria-pressed="true"]{border:2px solid var(--accent)}
 .period-btn:disabled{cursor:not-allowed;color:var(--muted);background:var(--bg);border-style:dashed}
+.date-input{display:flex;gap:6px;width:100%}
+.date-input select{padding:0 8px;flex:1 1 0}
+.date-input select:first-child{flex:0.8 1 0}
+.date-input select:nth-child(2){flex:1.5 1 0}
+.date-input select:last-child{flex:0.9 1 0}

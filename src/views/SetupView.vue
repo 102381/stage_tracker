@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { app, t, state, fullDate, commit, goTo } from '../store.js'
 import { PERIODS, LIMITS, isDate, toHours, cleanState, dayString } from '../logic.js'
 import LangSwitch from '../components/LangSwitch.vue'
+import DateInput from '../components/DateInput.vue'
 
 const official = PERIODS[app.period]
 const config = state.value.cfg
@@ -50,9 +51,7 @@ function chooseBackup() {
 
     <form class="stack" id="setup-form" novalidate @submit.prevent="submit">
       <div class="field-grid">
-        <label for="setup-start"><span>{{ t.start }}</span>
-          <input id="setup-start" type="date" required v-model="start" :min="official.first" :max="official.last">
-        </label>
+        <div class="field"><span>{{ t.start }}</span><DateInput id="setup-start" v-model="start" /></div>
       </div>
 
       <h3>{{ t.weekHint }}</h3>

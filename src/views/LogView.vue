@@ -4,6 +4,7 @@ import { app, t, state, showNumber, fullDate, openLog, saveLog } from '../store.
 import { LIMITS, dayNumber, isDate } from '../logic.js'
 import { ICONS } from '../icons.js'
 import BackHeader from '../components/BackHeader.vue'
+import DateInput from '../components/DateInput.vue'
 
 const quickHours = [4, 6, 8, 0]
 
@@ -17,8 +18,8 @@ const saveText = computed(() => {
 
 const latestDates = computed(() => Object.keys(state.value.logs).sort().reverse().slice(0, 2))
 
-function onDateChange(event) {
-  if (isDate(event.target.value)) openLog(event.target.value)
+function onDateChange(value) {
+  if (isDate(value)) openLog(value)
 }
 function less() {
   app.hoursToLog = Math.max(0, app.hoursToLog - 0.5)
@@ -32,8 +33,7 @@ function more() {
   <section class="view" id="view-log">
     <BackHeader :title="t.addTitle" />
 
-    <label class="visually-hidden" for="log-date">{{ t.date }}</label>
-    <div class="date-row"><input id="log-date" type="date" required :value="app.logDate" @change="onDateChange"></div>
+    <div class="date-row"><DateInput id="log-date" :model-value="app.logDate" @update:model-value="onDateChange" /></div>
     <div class="lock-note" id="lock-note" v-if="tooOld">{{ t.locked }}</div>
 
     <div class="stepper">

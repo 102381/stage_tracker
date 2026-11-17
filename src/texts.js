@@ -1,6 +1,6 @@
 export const TEXTS = {
   en: {
-    done: 'Done', toWord: 'to', change: 'change',
+    done: 'Done', toWord: 'to', change: 'change', day: 'Day', month: 'Month', year: 'Year',
     pickTitle: 'Which internship are you in?',
     periodName: n => n === 1 ? '1st internship' : '2nd internship', opensOn: d => `Opens on ${d}`, title: 'Stage hours', addToday: "Add today's hours",
     entries: 'Entries', calendar: 'Calendar', settings: 'Settings',
@@ -31,7 +31,7 @@ export const TEXTS = {
     months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   },
   nl: {
-    done: 'Klaar', toWord: 'tot', change: 'wijzig',
+    done: 'Klaar', toWord: 'tot', change: 'wijzig', day: 'Dag', month: 'Maand', year: 'Jaar',
     pickTitle: 'In welke stage zit je?',
     periodName: n => `${n}e stage`, opensOn: d => `Opent op ${d}`, title: 'Stage-uren', addToday: 'Uren van vandaag invullen',
     entries: 'Invoer', calendar: 'Kalender', settings: 'Instellingen',
