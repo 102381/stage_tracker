@@ -13,5 +13,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
     "vite": "^6.0.7"
-  }
+  },
+  "description": "Track internship hours and see when you finish",
+  "license": "MIT"
 }

@@ -4,6 +4,8 @@ A small page for keeping track of internship hours. You pick your internship (th
 
 Live: https://102381.github.io/stage_tracker/
 
+The hours and dates are those of one school and one study programme. To use it for something else, change them at the top of `src/logic.js`. Open source under the MIT licence, see `LICENSE`.
+
 Everything is stored in your own browser and nothing is sent anywhere. To move to another phone or laptop, use Backup in Settings. On a phone you can add it to the home screen, and it also works without a connection after the first visit.
 
 ## Working on it
