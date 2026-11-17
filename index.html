@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-uMiczvodMJ5NDRfhYT3mbwr4Uwd8Uj/qTNSn7IVseQc='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-+Sz3TFKz4JW7jh8hPVBCxzuT2+RgbMh89zarEDBWBPM='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Stage Hours Tracker</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
@@ -132,6 +132,8 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
 .inline-form>label{flex:1 1 120px}
 
 @media (prefers-reduced-motion:no-preference){.bar i{transition:width .4s ease}}
+
+.stack{display:flex;flex-direction:column;gap:20px}
 </style>
 </head>
 <body>
@@ -237,9 +239,42 @@ label{display:grid;gap:6px;font-size:13px;color:var(--muted);min-width:0}
     <div class="inline-form">
       <button class="small-btn" type="button" id="export-btn" data-text="exportBtn"></button>
       <button class="small-btn" type="button" id="import-btn" data-text="importBtn"></button>
-      <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json" aria-label="Backup file">
     </div>
+    <button class="small-btn" type="button" id="reset-btn" data-text="resetBtn"></button>
   </section>
+
+  <section class="view" id="view-setup" hidden>
+    <div class="top">
+      <span class="brand" data-text="title"></span>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="nl">NL</button>
+      </div>
+    </div>
+    <h2 data-text="setupTitle"></h2>
+    <div class="small muted" data-text="setupHint"></div>
+    <form class="stack" id="setup-form" novalidate>
+      <div class="field-grid">
+        <label for="setup-start"><span data-text="start"></span><input id="setup-start" type="date" required></label>
+        <label for="setup-end"><span data-text="end"></span><input id="setup-end" type="date" required></label>
+        <label for="setup-min"><span data-text="minHours"></span><input id="setup-min" type="number" step="0.25" min="0" max="5000"></label>
+      </div>
+      <h3 data-text="weekHint"></h3>
+      <div class="week-hours" id="setup-week"></div>
+      <h3 data-text="openTitle"></h3>
+      <div class="small muted" data-text="openHint"></div>
+      <div class="field-grid">
+        <label for="setup-approved"><span data-text="approved"></span><input id="setup-approved" type="number" step="0.25" min="0" max="5000"></label>
+        <label for="setup-pending"><span data-text="pending"></span><input id="setup-pending" type="number" step="0.25" min="0" max="5000"></label>
+        <label for="setup-asof"><span data-text="asof"></span><input id="setup-asof" type="date"></label>
+      </div>
+      <div class="lock-note" id="setup-error" hidden data-text="setupError"></div>
+      <button class="big-btn" type="submit" data-text="startBtn"></button>
+      <button class="small-btn" type="button" id="setup-import-btn" data-text="haveBackup"></button>
+    </form>
+  </section>
+
+  <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json" aria-label="Backup file">
 
 </div>
 
@@ -270,6 +305,9 @@ const TEXTS = {
     weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     legend: { logged: 'Logged', short: 'Below plan', returnDay: 'Return day', dayOff: 'Day off', noWork: 'No work', lastDay: 'Last day' },
     storedHere: 'Saved on this device only',
+    setupTitle: 'Set up your internship', setupHint: 'Your hours stay on this device. You can change everything later in Settings.',
+    startBtn: 'Start tracking', haveBackup: 'I have a backup file', setupError: 'Check your dates: the last day must come after the first day.',
+    resetBtn: 'Erase my data and start over', resetConfirm: 'Erase all your hours and settings on this device?',
     backup: 'Backup', exportBtn: 'Download backup', importBtn: 'Load backup',
     backupHint: 'Use this to move your hours to another device.',
     importDone: 'Backup loaded.', importFailed: 'That file could not be read.',
@@ -297,6 +335,9 @@ const TEXTS = {
     weekdays: ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'],
     legend: { logged: 'Ingevuld', short: 'Onder plan', returnDay: 'Terugkomdag', dayOff: 'Vrije dag', noWork: 'Geen werk', lastDay: 'Laatste dag' },
     storedHere: 'Alleen op dit apparaat opgeslagen',
+    setupTitle: 'Stel je stage in', setupHint: 'Je uren blijven op dit apparaat. Je kunt alles later aanpassen bij Instellingen.',
+    startBtn: 'Beginnen', haveBackup: 'Ik heb een back-upbestand', setupError: 'Controleer je datums: de laatste dag moet na de eerste dag liggen.',
+    resetBtn: 'Mijn gegevens wissen en opnieuw beginnen', resetConfirm: 'Alle uren en instellingen op dit apparaat wissen?',
     backup: 'Back-up', exportBtn: 'Back-up downloaden', importBtn: 'Back-up laden',
     backupHint: 'Gebruik dit om je uren naar een ander apparaat te verplaatsen.',
     importDone: 'Back-up geladen.', importFailed: 'Dat bestand kan niet worden gelezen.',
@@ -314,19 +355,6 @@ const ICONS = {
 
 
 /* ========== Defaults and limits ========== */
-
-const DEFAULT_CONFIG = {
-  start: '2026-09-02',
-  end: '2027-02-05',
-  min: 620,
-  week: [0, 8, 8, 8, 8, 8, 0],            // Sunday first, like Date.getDay()
-  open: { approved: 208, pending: 56.75, asOf: '2026-11-16' },
-  off: [
-    { from: '2026-12-24', to: '2026-12-28', label: 'Christmas' },
-    { from: '2027-01-01', to: '2027-01-01', label: 'New Year' }
-  ],
-  ret: ['2026-12-09']
-};
 
 const LIMITS = {
   hoursPerDay: 24, totalHours: 5000, entries: 1000, offRanges: 100, returnDays: 100,
@@ -362,6 +390,23 @@ function isDate(value) {
   const year = Number(value.slice(0, 4));
   return year >= 2000 && year <= 2100 && dayString(dayNumber(value)) === value;
 }
+
+
+/* ========== Defaults (used until someone sets up their own internship) ========== */
+
+function buildDefaultConfig() {
+  const first = todayNumber();
+  return {
+    start: dayString(first),
+    end: dayString(first + 180),
+    min: 400,
+    week: [0, 8, 8, 8, 8, 8, 0],            // Sunday first, like Date.getDay()
+    open: { approved: 0, pending: 0, asOf: dayString(first - 1) },
+    off: [],
+    ret: []
+  };
+}
+const DEFAULT_CONFIG = buildDefaultConfig();
 
 
 /* ========== Cleaning data before it is used ========== */
@@ -742,6 +787,12 @@ function drawSettingsLists() {
     : `<li class="empty">${esc(t.nothingAdded)}</li>`;
 }
 
+function weekHoursInputs(idPrefix, week) {
+  return [1, 2, 3, 4, 5, 6, 0].map((weekday, i) =>
+    `<label for="${idPrefix}-${weekday}"><span>${text().weekdays[i]}</span>
+       <input id="${idPrefix}-${weekday}" data-weekday="${weekday}" type="number" inputmode="decimal" step="0.25" min="0" max="24" value="${week[weekday]}"></label>`).join('');
+}
+
 // Fill the settings fields, unless the person is typing in one of them.
 function fillSettingsFields() {
   if (document.activeElement && $('#view-settings').contains(document.activeElement)) return;
@@ -752,9 +803,19 @@ function fillSettingsFields() {
   $('#set-approved').value = config.open.approved;
   $('#set-pending').value = config.open.pending;
   $('#set-asof').value = config.open.asOf;
-  $('#week-hours').innerHTML = [1, 2, 3, 4, 5, 6, 0].map((weekday, i) =>
-    `<label for="hours-${weekday}"><span>${text().weekdays[i]}</span>
-       <input id="hours-${weekday}" data-weekday="${weekday}" type="number" inputmode="decimal" step="0.25" min="0" max="24" value="${config.week[weekday]}"></label>`).join('');
+  $('#week-hours').innerHTML = weekHoursInputs('hours', config.week);
+}
+
+function fillSetupFields() {
+  const config = state.cfg;
+  $('#setup-start').value = config.start;
+  $('#setup-end').value = config.end;
+  $('#setup-min').value = config.min;
+  $('#setup-approved').value = config.open.approved;
+  $('#setup-pending').value = config.open.pending;
+  $('#setup-asof').value = config.open.asOf;
+  $('#setup-week').innerHTML = weekHoursInputs('setup-hours', config.week);
+  $('#setup-error').hidden = true;
 }
 
 function draw() {
@@ -844,6 +905,7 @@ document.addEventListener('click', event => {
     lang = langButton.dataset.lang === 'nl' ? 'nl' : 'en';
     writeSetting(STORAGE_KEYS.lang, lang);
     applyLanguage(); applyTheme(); fillSettingsFields(); draw();
+    document.querySelectorAll('#setup-week label span').forEach((label, i) => { label.textContent = text().weekdays[i]; });
     return;
   }
   if (event.target.closest('#theme-btn')) {
@@ -915,6 +977,37 @@ $('#import-file').addEventListener('change', event => {
   event.target.value = '';
 });
 
+$('#setup-import-btn').addEventListener('click', () => $('#import-file').click());
+$('#reset-btn').addEventListener('click', () => {
+  if (!window.confirm(text().resetConfirm)) return;
+  try { localStorage.removeItem(STORAGE_KEYS.state); } catch (e) { /* ignore */ }
+  state = cleanState({});
+  fillSetupFields();
+  showView('setup');
+});
+$('#setup-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const start = $('#setup-start').value;
+  const end = $('#setup-end').value;
+  if (!isDate(start) || !isDate(end) || end < start) { $('#setup-error').hidden = false; return; }
+  const week = [0, 0, 0, 0, 0, 0, 0];
+  for (const input of document.querySelectorAll('#setup-week input')) {
+    week[Number(input.dataset.weekday)] = toHours(input.value, LIMITS.hoursPerDay);
+  }
+  state = cleanState({
+    cfg: {
+      start, end, week,
+      min: $('#setup-min').value,
+      open: { approved: $('#setup-approved').value, pending: $('#setup-pending').value, asOf: $('#setup-asof').value },
+      off: [], ret: []
+    },
+    logs: {}
+  });
+  commit();
+  fillSettingsFields();
+  showView('home');
+});
+
 // One handler for every field on the settings screen.
 const settingFields = {
   'set-start':    (config, value) => { if (isDate(value)) config.start = value; },
@@ -956,6 +1049,7 @@ function importBackup(file) {
       state = cleanState(JSON.parse(reader.result));        // checked like any other input
       commit();
       fillSettingsFields();
+      if (currentView === 'setup') showView('home');
       alert(text().importDone);
     } catch (e) {
       alert(text().importFailed);
@@ -967,12 +1061,14 @@ function importBackup(file) {
 function start() {
   lang = readSetting(STORAGE_KEYS.lang) === 'nl' ? 'nl' : 'en';
   theme = readSetting(STORAGE_KEYS.theme) === 'dark' ? 'dark' : 'light';
+  const firstVisit = readSetting(STORAGE_KEYS.state) === null;
   loadSavedState();
   fillIcons();
   applyLanguage();
   applyTheme();
   fillSettingsFields();
-  showView('home');
+  fillSetupFields();
+  showView(firstVisit ? 'setup' : 'home');
   setInterval(() => {                                        // roll over at midnight
     const now = todayNumber();
     if (now !== today) { today = now; if (currentView !== 'log') draw(); }
